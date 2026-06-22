@@ -46,7 +46,8 @@ export default function AdminPanel({ params, onSave, onClose }) {
       title: "🏠 Carte & Maisons",
       fields: [
         ["totalHouses", "Nombre total maisons"],
-        ["initialHouses", "Maisons au debut"],
+        ["initialHouses", "Parc existant (total)"],
+        ["initialActiveHouses", "Maisons en demande au depart"],
         ["newHousesPerMonthMin", "Nouvelles maisons / mois (min)"],
         ["newHousesPerMonthMax", "Nouvelles maisons / mois (max)"],
         ["nbDistributors", "Nombre de distributeurs"],

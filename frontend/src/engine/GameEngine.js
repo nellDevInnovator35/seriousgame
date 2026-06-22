@@ -17,9 +17,21 @@ export function computeEbitda(kpis) {
 // ========== CREATION STATE INITIAL ==========
 export function createInitialState(params = DEFAULT_PARAMS) {
   const map = generateMap(params);
-  // Les maisons initiales ont besoin de changer de filiere ANC
+  // Seules les premieres maisons sont en demande au jour 0.
+  // Le reste du parc existant emerge progressivement (controles SPANC etales),
+  // via le meme pipeline mensuel que les nouvelles constructions.
+  const activeCount = Math.min(
+    params.initialActiveHouses ?? params.initialHouses,
+    params.initialHouses
+  );
   map.houses.forEach(h => {
-    if (h.isInitial) { h.status = "needsANC"; h.hasDemand = true; h.demandDay = 0; }
+    if (h.isInitial) {
+      if (h.id < activeCount) {
+        h.status = "needsANC"; h.hasDemand = true; h.demandDay = 0; h.appearedDay = 0;
+      } else {
+        h.appearedDay = null; // pas encore sur le marche
+      }
+    }
   });
   return {
     params: { ...params }, day: 0, ...map,
@@ -35,7 +47,7 @@ export function createInitialState(params = DEFAULT_PARAMS) {
       totalCostMaintenance: 0, totalCostFixed: 0,
     },
     activeEvents: [], eventLog: [],
-    nextHouseIndex: params.initialHouses,
+    nextHouseIndex: activeCount,
     isRunning: false, speed: 1, gameOver: false,
     showDevis: null, showEvent: null, showScore: false,
   };

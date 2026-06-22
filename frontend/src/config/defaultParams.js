@@ -2,6 +2,7 @@ export const DEFAULT_PARAMS = {
   mapWidth: 20, mapHeight: 10, communeSize: 10,
   nbDistributors: 2, distributorRadius: 2,
   totalHouses: 200, initialHouses: 100,
+  initialActiveHouses: 12, // maisons en demande des le jour 0 (le reste emerge progressivement)
   newHousesPerMonthMin: 2, newHousesPerMonthMax: 5,
   terrainIssueRate: 0.05,
   ecofloPerDay: 1, eparcoPerDay: 2, maxStock: 100, daysPerWeek: 5,
