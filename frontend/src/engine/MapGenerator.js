@@ -13,6 +13,15 @@ export function findNearestDistributor(h, ds) {
   return n;
 }
 
+// Les n maisons les plus proches d'un point (ex: un distributeur) -> zone d'influence
+export function findNearestHouses(point, hs, n) {
+  return hs
+    .map(x => ({ h: x, d: distance(point, x) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, n)
+    .map(e => e.h);
+}
+
 export function findNearestNeighbors(h, hs, n) {
   return hs.filter(x => x.id !== h.id)
     .map(x => ({ h: x, d: distance(h, x) }))

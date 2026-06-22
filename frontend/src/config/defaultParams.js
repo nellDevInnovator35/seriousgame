@@ -17,7 +17,8 @@ export const DEFAULT_PARAMS = {
   costProductionEcoflo: 600, costProductionEparco: 900,
   costPerTrip: 150, fixedCostPerYear: 8000,
   eventLeakMaxDays: 2, eventFactoryClosureDays: 20,
-  eventCompetitorDuration: 180, eventCompetitorRadius: 20,
+  eventCompetitorDuration: 180,
+  competitorZoneHouses: 30, // taille de la zone d'influence du distributeur touchee par la guerre des prix
   eventCompetitorCaptureRate: 0.80,
   gameDurationYears: 11,
   daysPerYear: 260, weeksPerYear: 52, daysInMonth: 22,

@@ -61,7 +61,7 @@ export default function AdminPanel({ params, onSave, onClose }) {
         ["eventLeakMaxDays", "Fuite : delai intervention (j)"],
         ["eventFactoryClosureDays", "Fermeture usine (jours)"],
         ["eventCompetitorDuration", "Promo concurrent (jours)"],
-        ["eventCompetitorRadius", "Rayon concurrent (km)"],
+        ["competitorZoneHouses", "Zone d'influence distributeur (nb maisons)"],
         ["eventCompetitorCaptureRate", "Taux capture concurrent (%)"],
       ],
     },

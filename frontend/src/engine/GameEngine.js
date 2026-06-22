@@ -1,5 +1,5 @@
 import { DEFAULT_PARAMS } from "../config/defaultParams.js";
-import { generateMap, distance, findNearestDistributor, findNearestNeighbors } from "./MapGenerator.js";
+import { generateMap, distance, findNearestDistributor, findNearestNeighbors, findNearestHouses } from "./MapGenerator.js";
 
 // ========== EBITDA REEL = CA - COUTS ==========
 // Remplace l'ancien calcul "15% du CA". Les couts (production, logistique,
@@ -230,23 +230,29 @@ export function advanceDay(state) {
     };
   }
 
-  // Concurrent casse les prix
-  if (Math.random() < 0.0005 && !s.activeEvents.some(e => e.type === "competitorPriceWar")) {
+  // Concurrent casse les prix : cible la zone d'influence d'UN distributeur
+  if (Math.random() < 0.0005 && !s.activeEvents.some(e => e.type === "competitorPriceWar")
+    && s.distributors.length > 0) {
+    const d = s.distributors[Math.floor(Math.random() * s.distributors.length)];
+    const zoneHouseIds = findNearestHouses(d, s.houses, p.competitorZoneHouses).map(h => h.id);
     s.activeEvents.push({
       type: "competitorPriceWar",
-      startDay: s.day, endDay: s.day + p.eventCompetitorDuration
+      startDay: s.day, endDay: s.day + p.eventCompetitorDuration,
+      distributorId: d.id, zoneHouseIds,
     });
     s.showEvent = {
       type: "competitorPriceWar",
-      message: "Concurrent casse les prix pendant 6 mois!"
+      message: "Concurrent casse les prix dans la zone d'un distributeur ("
+        + zoneHouseIds.length + " maisons) pendant 6 mois!"
     };
   }
 
-  // Guerre des prix active
-  if (s.activeEvents.some(e => e.type === "competitorPriceWar" && s.day <= e.endDay)) {
-    s.houses.filter(h => h.status === "needsANC" && !h.channel).forEach(h => {
-      if (s.distributors.some(d => distance(h, d) <= p.eventCompetitorRadius)
-        && Math.random() < p.eventCompetitorCaptureRate * 0.01) {
+  // Guerre des prix active : seuls les prospects de la zone touchee peuvent partir
+  const war = s.activeEvents.find(e => e.type === "competitorPriceWar" && s.day <= e.endDay);
+  if (war && war.zoneHouseIds) {
+    const zone = new Set(war.zoneHouseIds);
+    s.houses.filter(h => zone.has(h.id) && h.status === "needsANC" && !h.channel).forEach(h => {
+      if (Math.random() < p.eventCompetitorCaptureRate * 0.01) {
         h.channel = "competitor"; h.status = "installed";
         h.isEquipped = true; h.installDay = s.day;
         s.kpis.totalCompetitor++; s.kpis.totalCompetitorCA += p.priceCompetitor;
