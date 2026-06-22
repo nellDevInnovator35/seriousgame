@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import { renderMap, screenToGrid } from "./IsometricRenderer.js";
 
-export default function GameMap({ state, onHouseClick, selectedHouse }) {
+export default function GameMap({ state, onHouseClick, onBuildingClick, selectedHouse }) {
   const canvasRef = useRef(null);
   const hovRef = useRef(null);
   const offRef = useRef({ offsetX: 0, offsetY: 0 });
@@ -48,12 +48,19 @@ export default function GameMap({ state, onHouseClick, selectedHouse }) {
       e.clientX - r.left, e.clientY - r.top,
       offRef.current.offsetX, offRef.current.offsetY
     );
+    // Batiments cliquables -> fiche metier
+    if (onBuildingClick) {
+      const f = state.factory, ps = state.pointService;
+      if (f && g.x === f.x && g.y === f.y) { onBuildingClick("usine"); return; }
+      if (ps && g.x === ps.x && g.y === ps.y) { onBuildingClick("pointService"); return; }
+      if (state.distributors.some(d => d.x === g.x && d.y === g.y)) { onBuildingClick("distributeur"); return; }
+    }
     const house = state.houses.find(h =>
       h.x === g.x && h.y === g.y &&
       h.appearedDay !== null && h.appearedDay <= state.day
     );
     if (house) onHouseClick(house.id);
-  }, [state, onHouseClick]);
+  }, [state, onHouseClick, onBuildingClick]);
 
   return (
     <div className="game-map-container">

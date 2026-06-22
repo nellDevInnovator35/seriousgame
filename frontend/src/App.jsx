@@ -14,6 +14,8 @@ import TimeControl from "./components/TimeControl.jsx";
 import EventPopup from "./components/EventPopup.jsx";
 import ScoreScreen from "./components/ScoreScreen.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
+import FicheMetier from "./components/FicheMetier.jsx";
+import Tutorial from "./components/Tutorial.jsx";
 import "./App.css";
 
 export default function App() {
@@ -24,6 +26,8 @@ export default function App() {
   const [saveName, setSaveName] = useState("Partie 1");
   const [showMenu, setShowMenu] = useState(true);
   const [saves, setSaves] = useState([]);
+  const [showFiche, setShowFiche] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
   const loopRef = useRef(null);
 
   // Charger sauvegardes et params au demarrage
@@ -59,6 +63,9 @@ export default function App() {
     const newState = createInitialState(params);
     setState(newState);
     setShowMenu(false);
+    let done = false;
+    try { done = localStorage.getItem("anc_tuto_done") === "1"; } catch { /* ignore */ }
+    setShowTutorial(!done);
   };
 
   const handleLoad = async (name) => {
@@ -222,6 +229,12 @@ export default function App() {
             onChange={e => setSaveName(e.target.value)}
             placeholder="Nom de la partie"
           />
+          <button className="btn btn-sm" onClick={() => setShowTutorial(true)} title="Tutoriel">
+            {"?"}
+          </button>
+          <button className="btn btn-sm" onClick={() => setShowFiche("menu")} title="Fiches métier">
+            {"\u{1F4D6}"}
+          </button>
           <button className="btn btn-sm" onClick={handleSave} title="Sauvegarder">
             {"\u{1F4BE}"}
           </button>
@@ -241,6 +254,7 @@ export default function App() {
           <GameMap
             state={state}
             onHouseClick={handleHouseClick}
+            onBuildingClick={setShowFiche}
             selectedHouse={selectedHouse}
           />
         </div>
@@ -282,6 +296,16 @@ export default function App() {
           onClose={() => setState(prev => ({ ...prev, showScore: false }))}
         />
       )}
+
+      {/* === TUTORIEL === */}
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+
+      {/* === FICHES METIER === */}
+      <FicheMetier
+        poste={showFiche}
+        onSelect={setShowFiche}
+        onClose={() => setShowFiche(null)}
+      />
 
       {/* === ADMIN PANEL === */}
       {showAdmin && (
