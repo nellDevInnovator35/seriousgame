@@ -1,0 +1,40 @@
+smartcity-anc/
+├── README.md
+├── docker-compose.yml
+├── backend/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── src/
+│       ├── index.js              ✅ Express server
+│       ├── database.js           ✅ SQLite init
+│       └── routes/
+│           ├── game.js           ✅ Save/Load/List
+│           └── admin.js          ✅ Params CRUD
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── index.html
+│   └── src/
+│       ├── main.jsx              ✅ Entry point
+│       ├── App.jsx               ✅ Main app (menu + jeu)
+│       ├── index.css             ✅ Reset CSS
+│       ├── App.css               ✅ Tous les styles
+│       ├── api/
+│       │   └── gameApi.js        ✅ Client API
+│       ├── config/
+│       │   └── defaultParams.js  ✅ Tous les paramètres
+│       ├── engine/
+│       │   ├── MapGenerator.js   ✅ Génération carte + helpers
+│       │   └── GameEngine.js     ✅ Moteur complet (toutes les règles)
+│       └── components/
+│           ├── IsometricRenderer.js  ✅ Rendu Canvas 2D iso
+│           ├── GameMap.jsx           ✅ Carte interactive
+│           ├── Dashboard.jsx         ✅ KPIs temps réel
+│           ├── ProductionPanel.jsx   ✅ Planification production
+│           ├── DevisPanel.jsx        ✅ Interaction maison
+│           ├── TimeControl.jsx       ✅ Play/Pause/Vitesse
+│           ├── EventPopup.jsx        ✅ Événements aléatoires
+│           ├── ScoreScreen.jsx       ✅ Résultats + pédagogie
+│           └── AdminPanel.jsx        ✅ Paramètres éditables
