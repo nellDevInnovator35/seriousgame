@@ -1,4 +1,5 @@
 import { computeEbitda } from "../engine/GameEngine.js";
+import EvolutionCharts from "./EvolutionCharts.jsx";
 
 export default function ScoreScreen({ state, onRestart, onClose }) {
   if (!state) return null;
@@ -98,6 +99,11 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
           <ScoreRow label="🏴 CA concurrent (perdu)" value={(kpis.totalCompetitorCA || 0).toLocaleString() + " €"} />
           <ScoreRow label="⏱️ Delai moyen" value={kpis.avgDeliveryDays.toFixed(1) + " jours"} />
           <ScoreRow label="🔧 Revenus maintenance" value={kpis.totalMaintenanceRevenue.toLocaleString() + " €"} />
+        </div>
+
+        <div className="score-charts">
+          <h3>📊 Evolution de la partie</h3>
+          <EvolutionCharts history={state.history} />
         </div>
 
         <div className="score-insights">

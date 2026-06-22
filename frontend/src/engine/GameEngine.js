@@ -47,6 +47,7 @@ export function createInitialState(params = DEFAULT_PARAMS) {
       totalCostMaintenance: 0, totalCostFixed: 0,
     },
     activeEvents: [], eventLog: [],
+    history: [], // releve mensuel pour les courbes d'evolution
     nextHouseIndex: activeCount,
     isRunning: false, speed: 2, gameOver: false,
     showDevis: null, showEvent: null, showScore: false,
@@ -279,6 +280,23 @@ export function advanceDay(state) {
     s.kpis.totalMaintenanceRevenue += n * p.priceMaintenanceYear;
     // Frais fixes annuels (usine, structure) - independants des ventes
     s.kpis.totalCostFixed += p.fixedCostPerYear;
+  }
+
+  // --- Releve mensuel pour les courbes d'evolution ---
+  if (s.day > 0 && s.day % p.daysInMonth === 0) {
+    const { ebitda, ebitdaMargin } = computeEbitda(s.kpis);
+    const equipped = s.kpis.totalEquipped + s.kpis.totalCompetitor;
+    s.history = [...s.history, {
+      day: s.day,
+      year: Math.round((s.day / p.daysPerYear) * 10) / 10,
+      ca: Math.round(s.kpis.totalCA),
+      ebitda: Math.round(ebitda),
+      margin: Math.round(ebitdaMargin * 1000) / 10,
+      satisfaction: s.kpis.deliveryCount
+        ? Math.round(s.kpis.satisfiedClients / s.kpis.deliveryCount * 1000) / 10 : 100,
+      ptShare: equipped ? Math.round(s.kpis.totalEquipped / equipped * 1000) / 10 : 0,
+      competitorCA: Math.round(s.kpis.totalCompetitorCA || 0),
+    }];
   }
 
   return s;

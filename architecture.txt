@@ -6,7 +6,7 @@ smartcity-anc/
 │   ├── package.json
 │   └── src/
 │       ├── index.js              ✅ Express server
-│       ├── database.js           ✅ SQLite init
+│       ├── database.js           ✅ Stockage JSON
 │       └── routes/
 │           ├── game.js           ✅ Save/Load/List
 │           └── admin.js          ✅ Params CRUD
