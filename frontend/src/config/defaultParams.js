@@ -8,6 +8,7 @@ export const DEFAULT_PARAMS = {
   ecofloPerDay: 1, eparcoPerDay: 2, maxStock: 100, daysPerWeek: 5,
   tripDuration: 1, installsPerDay: 1,
   priceEparcoInstall: 2000, priceEcofloSale: 1000, priceMaintenanceYear: 100,
+  priceCompetitor: 1500, // CA estime que le concurrent encaisse par installation captee
   devisToSaleDays: 14, maxDeliveryDays: 20, negativeReviewNeighbors: 5,
   distributorSwitchThreshold: 0.20,
   distributorCompetitorPriceFactor: 0.8,

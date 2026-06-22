@@ -71,7 +71,7 @@ export default function DevisPanel({ state, houseId, onConfirm, onClose, onResol
                   <button className="btn btn-secondary devis-option" onClick={() => onConfirm(house.id, "distributor")}>
                     <span className="devis-option-title">📦 Distributeur — Ecoflo {house.inhabitants}h</span>
                     <span className="devis-option-price">{state.params.priceEcofloSale}€</span>
-                    <span className="devis-option-note">+ Rapide (sans delai devis) · fidelise le distributeur · − marge plus faible · pas de maintenance PT</span>
+                    <span className="devis-option-note">+ Rapide (sans delai devis) · fidelise le distributeur · maintenance incluse · − marge plus faible</span>
                   </button>
                 ) : (
                   <p className="text-muted">📦 Aucun distributeur a portee : seul le Point Service est possible ici.</p>

@@ -23,6 +23,7 @@ export default function AdminPanel({ params, onSave, onClose }) {
         ["priceEparcoInstall", "Installation Eparco (€)"],
         ["priceEcofloSale", "Vente Ecoflo (€)"],
         ["priceMaintenanceYear", "Contrat maintenance / an (€)"],
+        ["priceCompetitor", "CA concurrent / installation (€)"],
       ],
     },
     {

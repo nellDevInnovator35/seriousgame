@@ -40,7 +40,7 @@ export function createInitialState(params = DEFAULT_PARAMS) {
     trucks: [], truckIdCounter: 0,
     kpis: {
       totalCA: 0, totalMaintenanceRevenue: 0, satisfiedClients: 0,
-      totalEquipped: 0, totalCompetitor: 0,
+      totalEquipped: 0, totalCompetitor: 0, totalCompetitorCA: 0,
       avgDeliveryDays: 0, deliveryDaysSum: 0, deliveryCount: 0,
       // Postes de couts pour l'EBITDA reel
       totalCostProduction: 0, totalCostLogistics: 0,
@@ -72,6 +72,7 @@ function doInstall(h, s, price) {
         n.channel = "competitor"; n.status = "installed";
         n.isEquipped = true; n.installDay = s.day;
         s.kpis.totalCompetitor++;
+        s.kpis.totalCompetitorCA += p.priceCompetitor;
       }
     });
   }
@@ -178,18 +179,19 @@ export function advanceDay(state) {
         if (Math.random() < 0.03) {
           h.channel = "competitor"; h.status = "installed";
           h.isEquipped = true; h.installDay = s.day;
-          s.kpis.totalCompetitor++; d.totalSalesCount++;
+          s.kpis.totalCompetitor++; s.kpis.totalCompetitorCA += p.priceCompetitor;
+          d.totalSalesCount++;
         }
       });
     }
   }
 
   // --- Maintenance (tous les 2 ans) ---
-  // Seul le Point Service (vente directe PT) inclut un contrat de maintenance.
-  // Le distributeur (vente indirecte) : pas de maintenance cote PT.
+  // Maintenance sur toutes les installations de notre marque (Point Service
+  // ET distributeur posant Ecoflo). Seul le concurrent est exclu.
   const maintDays = p.maintenanceIntervalYears * p.daysPerYear;
   s.houses.forEach(h => {
-    if (h.isEquipped && h.channel === "pointService" && h.lastMaintenanceDay
+    if (h.isEquipped && h.channel !== "competitor" && h.lastMaintenanceDay
       && s.day - h.lastMaintenanceDay >= maintDays) {
       h.needsMaintenance = true;
     }
@@ -247,7 +249,7 @@ export function advanceDay(state) {
         && Math.random() < p.eventCompetitorCaptureRate * 0.01) {
         h.channel = "competitor"; h.status = "installed";
         h.isEquipped = true; h.installDay = s.day;
-        s.kpis.totalCompetitor++;
+        s.kpis.totalCompetitor++; s.kpis.totalCompetitorCA += p.priceCompetitor;
       }
     });
   }
@@ -265,8 +267,8 @@ export function advanceDay(state) {
 
   // Revenus maintenance annuels
   if (s.day % p.daysPerYear === 0 && s.day > 0) {
-    // Revenu de maintenance : uniquement les installations Point Service.
-    const n = s.houses.filter(h => h.isEquipped && h.channel === "pointService").length;
+    // Revenu de maintenance : toutes les installations de notre marque (hors concurrent).
+    const n = s.houses.filter(h => h.isEquipped && h.channel !== "competitor").length;
     s.kpis.totalCA += n * p.priceMaintenanceYear;
     s.kpis.totalMaintenanceRevenue += n * p.priceMaintenanceYear;
     // Frais fixes annuels (usine, structure) - independants des ventes
@@ -280,7 +282,7 @@ export function advanceDay(state) {
 export function processDevisPending(s) {
   const r = { ...s, houses: s.houses.map(h => ({ ...h })) };
   r.houses.forEach(h => {
-    if (h.status === "devisSent" && h.devisSentDay
+    if (h.status === "devisSent" && h.devisSentDay != null
       && r.day - h.devisSentDay >= r.params.devisToSaleDays) {
       h.status = "ordered"; h.orderDay = r.day;
     }

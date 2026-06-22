@@ -95,6 +95,7 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
           <ScoreRow label="😊 Satisfaction" value={satRate.toFixed(1) + "%"} />
           <ScoreRow label="📊 Part de marche PT" value={ptShare.toFixed(1) + "%"} />
           <ScoreRow label="🏠 Maisons PT" value={kpis.totalEquipped + " / " + totalVis} />
+          <ScoreRow label="🏴 CA concurrent (perdu)" value={(kpis.totalCompetitorCA || 0).toLocaleString() + " €"} />
           <ScoreRow label="⏱️ Delai moyen" value={kpis.avgDeliveryDays.toFixed(1) + " jours"} />
           <ScoreRow label="🔧 Revenus maintenance" value={kpis.totalMaintenanceRevenue.toLocaleString() + " €"} />
         </div>

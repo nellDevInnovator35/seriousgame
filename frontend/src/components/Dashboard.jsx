@@ -25,6 +25,7 @@ export default function Dashboard({ state }) {
         <KPI icon={"\u{1F4E6}"} value={factory.totalStock + "/" + params.maxStock} label="Stock" />
         <KPI icon={"\u{1F3E0}"} value={kpis.totalEquipped + " PT / " + kpis.totalCompetitor + " Conc."} label={"Equipees (" + totalVis + ")"} />
         <KPI icon={"\u{1F527}"} value={kpis.totalMaintenanceRevenue.toLocaleString() + " \u20ac"} label="Maintenance" />
+        <KPI icon={"\u{1F3F4}"} value={(kpis.totalCompetitorCA || 0).toLocaleString() + " \u20ac"} label="CA Concurrent" />
       </div>
       {factory.isClosed && (
         <div className="alert alert-danger">
