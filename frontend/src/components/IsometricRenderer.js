@@ -176,6 +176,31 @@ export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse) {
     ctx.stroke();
   }
 
+  // Zone ciblee par la guerre des prix (mise en evidence rouge)
+  const war = state.activeEvents?.find(e => e.type === "competitorPriceWar" && day <= e.endDay);
+  if (war && war.zoneHouseIds) {
+    const zone = new Set(war.zoneHouseIds);
+    for (const h of houses) {
+      if (!zone.has(h.id)) continue;
+      const { x: sx, y: sy } = gridToScreen(h.x, h.y, ox, oy);
+      diamond(ctx, sx, sy, "rgba(221,51,51,0.30)");
+      ctx.strokeStyle = "rgba(221,51,51,0.75)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    const td = distributors.find(d => d.id === war.distributorId);
+    if (td) {
+      const { x: sx, y: sy } = gridToScreen(td.x, td.y, ox, oy);
+      ctx.beginPath();
+      ctx.arc(sx, sy - 8, 28, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(221,51,51,0.95)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
   // Labels communes
   ctx.font = "bold 12px Arial";
   ctx.fillStyle = "rgba(255,255,255,0.3)";
@@ -237,6 +262,12 @@ export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse) {
   const mo = (Math.floor(day / params.daysInMonth) % 12) + 1;
   const wk = (Math.floor(day / 7) % 4) + 1;
   ctx.fillText("Annee " + yr + " - Mois " + mo + " - Sem " + wk + " - Jour " + day, 10, 20);
+
+  if (war) {
+    ctx.fillStyle = "#ff5555";
+    ctx.font = "bold 12px Arial";
+    ctx.fillText("⚔ Guerre des prix : zone ciblee en rouge", 10, 38);
+  }
 
   return { offsetX: ox, offsetY: oy };
 }
