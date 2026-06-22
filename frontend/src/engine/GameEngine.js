@@ -185,9 +185,11 @@ export function advanceDay(state) {
   }
 
   // --- Maintenance (tous les 2 ans) ---
+  // Seul le Point Service (vente directe PT) inclut un contrat de maintenance.
+  // Le distributeur (vente indirecte) : pas de maintenance cote PT.
   const maintDays = p.maintenanceIntervalYears * p.daysPerYear;
   s.houses.forEach(h => {
-    if (h.isEquipped && h.channel !== "competitor" && h.lastMaintenanceDay
+    if (h.isEquipped && h.channel === "pointService" && h.lastMaintenanceDay
       && s.day - h.lastMaintenanceDay >= maintDays) {
       h.needsMaintenance = true;
     }
@@ -263,7 +265,8 @@ export function advanceDay(state) {
 
   // Revenus maintenance annuels
   if (s.day % p.daysPerYear === 0 && s.day > 0) {
-    const n = s.houses.filter(h => h.isEquipped && h.channel !== "competitor").length;
+    // Revenu de maintenance : uniquement les installations Point Service.
+    const n = s.houses.filter(h => h.isEquipped && h.channel === "pointService").length;
     s.kpis.totalCA += n * p.priceMaintenanceYear;
     s.kpis.totalMaintenanceRevenue += n * p.priceMaintenanceYear;
     // Frais fixes annuels (usine, structure) - independants des ventes

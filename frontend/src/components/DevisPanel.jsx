@@ -64,14 +64,14 @@ export default function DevisPanel({ state, houseId, onConfirm, onClose, onResol
                 <button className="btn btn-primary devis-option" onClick={() => onConfirm(house.id, "pointService")}>
                   <span className="devis-option-title">🏪 Point Service — Eparco {house.inhabitants}h</span>
                   <span className="devis-option-price">{state.params.priceEparcoInstall}€</span>
-                  <span className="devis-option-note">+ Marge la plus elevee · ⏱ delai devis {state.params.devisToSaleDays}j, pose limitee a {state.params.installsPerDay}/jour</span>
+                  <span className="devis-option-note">+ Marge la plus elevee · 🔧 contrat de maintenance inclus ({state.params.priceMaintenanceYear}€/an) · ⏱ delai devis {state.params.devisToSaleDays}j, pose limitee a {state.params.installsPerDay}/jour</span>
                 </button>
 
                 {state.showDevis?.distributorAvailable ? (
                   <button className="btn btn-secondary devis-option" onClick={() => onConfirm(house.id, "distributor")}>
                     <span className="devis-option-title">📦 Distributeur — Ecoflo {house.inhabitants}h</span>
                     <span className="devis-option-price">{state.params.priceEcofloSale}€</span>
-                    <span className="devis-option-note">+ Rapide (sans delai devis) · fidelise le distributeur · − marge plus faible</span>
+                    <span className="devis-option-note">+ Rapide (sans delai devis) · fidelise le distributeur · − marge plus faible · pas de maintenance PT</span>
                   </button>
                 ) : (
                   <p className="text-muted">📦 Aucun distributeur a portee : seul le Point Service est possible ici.</p>
