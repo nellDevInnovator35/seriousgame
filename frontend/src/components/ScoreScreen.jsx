@@ -1,8 +1,10 @@
+import { computeEbitda } from "../engine/GameEngine.js";
+
 export default function ScoreScreen({ state, onRestart, onClose }) {
   if (!state) return null;
 
   const { kpis, params, day, houses } = state;
-  const ebitda = kpis.totalCA * params.ebitdaRate;
+  const { ebitda, totalCosts, ebitdaMargin } = computeEbitda(kpis);
   const totalVis = houses.filter(h => h.appearedDay !== null && h.appearedDay <= day).length;
   const equipped = kpis.totalEquipped + kpis.totalCompetitor;
   const ptShare = equipped > 0 ? (kpis.totalEquipped / equipped * 100) : 0;
@@ -51,8 +53,22 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
     });
   }
 
-  const grade = ebitda > 200000 ? "A+" : ebitda > 150000 ? "A" : ebitda > 100000 ? "B"
-    : ebitda > 50000 ? "C" : ebitda > 20000 ? "D" : "E";
+  if (ebitda <= 0) {
+    insights.push({
+      icon: "🔴", title: "EBITDA négatif",
+      msg: "Les coûts (production, logistique, frais fixes) ont dépassé le chiffre d'affaires. Surproduire du stock invendu ou multiplier les trajets pèse directement sur la rentabilité.",
+      service: "Production & Logistique",
+    });
+  } else if (ebitdaMargin < 0.10) {
+    insights.push({
+      icon: "⚠️", title: "Marge faible",
+      msg: "La marge EBITDA est sous les 10%. Mieux vaut produire au plus près de la demande et limiter les trajets pour protéger la rentabilité.",
+      service: "Production & Logistique",
+    });
+  }
+
+  const grade = ebitda > 150000 ? "A+" : ebitda > 100000 ? "A" : ebitda > 60000 ? "B"
+    : ebitda > 30000 ? "C" : ebitda > 0 ? "D" : "E";
 
   return (
     <div className="score-overlay">
@@ -61,11 +77,21 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
 
         <div className="score-grade">
           <div className="grade-circle">{grade}</div>
+          <div className="grade-ebitda">
+            <span className="grade-ebitda-label">EBITDA</span>
+            <span className="grade-ebitda-value">{Math.round(ebitda).toLocaleString() + " €"}</span>
+            <span className="grade-ebitda-margin">{"Marge " + (ebitdaMargin * 100).toFixed(0) + "% du CA"}</span>
+          </div>
         </div>
 
         <div className="score-summary">
           <ScoreRow label="💰 CA total" value={kpis.totalCA.toLocaleString() + " €"} />
-          <ScoreRow label="📈 EBITDA (15%)" value={Math.round(ebitda).toLocaleString() + " €"} highlight />
+          <ScoreRow label="🏭 Coût production" value={"- " + Math.round(kpis.totalCostProduction).toLocaleString() + " €"} />
+          <ScoreRow label="🚛 Coût logistique" value={"- " + Math.round(kpis.totalCostLogistics).toLocaleString() + " €"} />
+          <ScoreRow label="🔧 Coût maintenance" value={"- " + Math.round(kpis.totalCostMaintenance).toLocaleString() + " €"} />
+          <ScoreRow label="🏢 Frais fixes" value={"- " + Math.round(kpis.totalCostFixed).toLocaleString() + " €"} />
+          <ScoreRow label="➖ Total coûts" value={"- " + Math.round(totalCosts).toLocaleString() + " €"} />
+          <ScoreRow label={"📈 EBITDA (" + (ebitdaMargin * 100).toFixed(0) + "% du CA)"} value={Math.round(ebitda).toLocaleString() + " €"} highlight />
           <ScoreRow label="😊 Satisfaction" value={satRate.toFixed(1) + "%"} />
           <ScoreRow label="📊 Part de marche PT" value={ptShare.toFixed(1) + "%"} />
           <ScoreRow label="🏠 Maisons PT" value={kpis.totalEquipped + " / " + totalVis} />

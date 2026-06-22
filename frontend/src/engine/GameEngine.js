@@ -1,6 +1,19 @@
 import { DEFAULT_PARAMS } from "../config/defaultParams.js";
 import { generateMap, distance, findNearestDistributor, findNearestNeighbors } from "./MapGenerator.js";
 
+// ========== EBITDA REEL = CA - COUTS ==========
+// Remplace l'ancien calcul "15% du CA". Les couts (production, logistique,
+// maintenance, frais fixes) sont accumules au fil de la partie.
+export function computeEbitda(kpis) {
+  const totalCosts = (kpis.totalCostProduction || 0)
+    + (kpis.totalCostLogistics || 0)
+    + (kpis.totalCostMaintenance || 0)
+    + (kpis.totalCostFixed || 0);
+  const ebitda = kpis.totalCA - totalCosts;
+  const ebitdaMargin = kpis.totalCA > 0 ? ebitda / kpis.totalCA : 0;
+  return { totalCosts, ebitda, ebitdaMargin };
+}
+
 // ========== CREATION STATE INITIAL ==========
 export function createInitialState(params = DEFAULT_PARAMS) {
   const map = generateMap(params);
@@ -17,6 +30,9 @@ export function createInitialState(params = DEFAULT_PARAMS) {
       totalCA: 0, totalMaintenanceRevenue: 0, satisfiedClients: 0,
       totalEquipped: 0, totalCompetitor: 0,
       avgDeliveryDays: 0, deliveryDaysSum: 0, deliveryCount: 0,
+      // Postes de couts pour l'EBITDA reel
+      totalCostProduction: 0, totalCostLogistics: 0,
+      totalCostMaintenance: 0, totalCostFixed: 0,
     },
     activeEvents: [], eventLog: [],
     nextHouseIndex: params.initialHouses,
@@ -87,15 +103,18 @@ export function advanceDay(state) {
   // --- Production (si usine ouverte, jours ouvres) ---
   if (!s.factory.isClosed && s.day % 7 < p.daysPerWeek) {
     if (s.weeklyPlan.ecoflo > 0 && s.factory.totalStock < p.maxStock) {
+      const add = Math.min(p.ecofloPerDay, p.maxStock - s.factory.totalStock);
       const k = Math.random() < 0.5 ? "ecoflo4" : "ecoflo5";
-      s.factory.stock[k] += p.ecofloPerDay;
-      s.factory.totalStock += p.ecofloPerDay;
+      s.factory.stock[k] += add;
+      s.factory.totalStock += add;
+      s.kpis.totalCostProduction += add * p.costProductionEcoflo;
     }
     if (s.weeklyPlan.eparco > 0 && s.factory.totalStock < p.maxStock) {
       const add = Math.min(p.eparcoPerDay, p.maxStock - s.factory.totalStock);
       s.factory.stock.eparco4 += Math.ceil(add / 2);
       s.factory.stock.eparco5 += Math.floor(add / 2);
       s.factory.totalStock += add;
+      s.kpis.totalCostProduction += add * p.costProductionEparco;
     }
   }
   if (s.factory.isClosed && s.day >= s.factory.closedUntilDay) {
@@ -235,6 +254,8 @@ export function advanceDay(state) {
     const n = s.houses.filter(h => h.isEquipped && h.channel !== "competitor").length;
     s.kpis.totalCA += n * p.priceMaintenanceYear;
     s.kpis.totalMaintenanceRevenue += n * p.priceMaintenanceYear;
+    // Frais fixes annuels (usine, structure) - independants des ventes
+    s.kpis.totalCostFixed += p.fixedCostPerYear;
   }
 
   return s;
@@ -310,12 +331,14 @@ export function shipProduct(state, houseId) {
     trucks: [...state.trucks],
     factory: { ...state.factory, stock: { ...state.factory.stock } },
     houses: state.houses.map(h => ({ ...h })),
+    kpis: { ...state.kpis },
   };
   const h = s.houses.find(x => x.id === houseId);
   if (!h || !h.product || s.factory.stock[h.product] <= 0) return s;
 
   s.factory.stock[h.product]--;
   s.factory.totalStock--;
+  s.kpis.totalCostLogistics += s.params.costPerTrip;
   s.trucks.push({
     id: s.truckIdCounter++,
     fromX: s.factory.x, fromY: s.factory.y,
@@ -346,8 +369,11 @@ export function resolveLeak(state, houseId) {
 
 // Effectuer la maintenance
 export function performMaintenance(state, houseId) {
-  const s = { ...state, houses: state.houses.map(h => ({ ...h })) };
+  const s = { ...state, houses: state.houses.map(h => ({ ...h })), kpis: { ...state.kpis } };
   const h = s.houses.find(x => x.id === houseId);
-  if (h) { h.needsMaintenance = false; h.lastMaintenanceDay = s.day; }
+  if (h && h.needsMaintenance) {
+    h.needsMaintenance = false; h.lastMaintenanceDay = s.day;
+    s.kpis.totalCostMaintenance += s.params.maintenanceCostPerVisit;
+  }
   return s;
 }

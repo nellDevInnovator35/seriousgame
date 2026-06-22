@@ -11,9 +11,12 @@ export const DEFAULT_PARAMS = {
   distributorSwitchThreshold: 0.20,
   distributorCompetitorPriceFactor: 0.8,
   maintenanceIntervalYears: 2, maintenanceCostPerVisit: 100,
+  // Couts unitaires pour le calcul EBITDA reel (EBITDA = CA - couts)
+  costProductionEcoflo: 600, costProductionEparco: 900,
+  costPerTrip: 150, fixedCostPerYear: 8000,
   eventLeakMaxDays: 2, eventFactoryClosureDays: 20,
   eventCompetitorDuration: 180, eventCompetitorRadius: 20,
   eventCompetitorCaptureRate: 0.80,
-  ebitdaRate: 0.15, gameDurationYears: 11,
+  gameDurationYears: 11,
   daysPerYear: 260, weeksPerYear: 52, daysInMonth: 22,
 };

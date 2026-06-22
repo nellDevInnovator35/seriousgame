@@ -1,3 +1,5 @@
+import { computeEbitda } from "../engine/GameEngine.js";
+
 export default function Dashboard({ state }) {
   if (!state) return null;
 
@@ -8,14 +10,15 @@ export default function Dashboard({ state }) {
   const satRate = kpis.deliveryCount > 0
     ? ((kpis.satisfiedClients / kpis.deliveryCount) * 100).toFixed(1)
     : "100";
-  const ebitda = (kpis.totalCA * params.ebitdaRate).toFixed(0);
+  const { ebitda, ebitdaMargin } = computeEbitda(kpis);
+  const ebitdaLabel = "EBITDA (" + (ebitdaMargin * 100).toFixed(0) + "%)";
 
   return (
     <div className="dashboard">
       <h3>Tableau de bord</h3>
       <div className="kpi-grid">
         <KPI icon={"\u{1F4B0}"} value={kpis.totalCA.toLocaleString() + " \u20ac"} label="CA" />
-        <KPI icon={"\u{1F4C8}"} value={Number(ebitda).toLocaleString() + " \u20ac"} label="EBITDA 15%" />
+        <KPI icon={"\u{1F4C8}"} value={Math.round(ebitda).toLocaleString() + " \u20ac"} label={ebitdaLabel} />
         <KPI icon={"\u{1F60A}"} value={satRate + "%"} label="Satisfaction" />
         <KPI icon={"\u{1F4CA}"} value={ptShare + "%"} label="Part marche PT" />
         <KPI icon={"\u23F1"} value={kpis.avgDeliveryDays.toFixed(1) + " j"} label="Delai moyen" />

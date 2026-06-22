@@ -64,9 +64,18 @@ export default function AdminPanel({ params, onSave, onClose }) {
       ],
     },
     {
+      title: "💸 Couts (EBITDA reel)",
+      fields: [
+        ["costProductionEcoflo", "Cout production Ecoflo (€)"],
+        ["costProductionEparco", "Cout production Eparco (€)"],
+        ["costPerTrip", "Cout par trajet camion (€)"],
+        ["maintenanceCostPerVisit", "Cout visite maintenance (€)"],
+        ["fixedCostPerYear", "Frais fixes / an (€)"],
+      ],
+    },
+    {
       title: "📊 Scoring",
       fields: [
-        ["ebitdaRate", "Taux EBITDA (%)"],
         ["gameDurationYears", "Duree du jeu (annees)"],
         ["maintenanceIntervalYears", "Intervalle maintenance (annees)"],
       ],

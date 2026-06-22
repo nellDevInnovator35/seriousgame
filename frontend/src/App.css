@@ -382,8 +382,30 @@
 }
 .score-grade {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 1.25rem;
   margin: 1rem 0;
+}
+.grade-ebitda {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.grade-ebitda-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+.grade-ebitda-value {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.grade-ebitda-margin {
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 .grade-circle {
   width: 80px;
