@@ -48,7 +48,7 @@ export function createInitialState(params = DEFAULT_PARAMS) {
     },
     activeEvents: [], eventLog: [],
     nextHouseIndex: activeCount,
-    isRunning: false, speed: 1, gameOver: false,
+    isRunning: false, speed: 2, gameOver: false,
     showDevis: null, showEvent: null, showScore: false,
   };
 }

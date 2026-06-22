@@ -3,7 +3,7 @@ export const DEFAULT_PARAMS = {
   nbDistributors: 2, distributorRadius: 2,
   totalHouses: 200, initialHouses: 100,
   initialActiveHouses: 12, // maisons en demande des le jour 0 (le reste emerge progressivement)
-  newHousesPerMonthMin: 2, newHousesPerMonthMax: 5,
+  newHousesPerMonthMin: 1, newHousesPerMonthMax: 3,
   terrainIssueRate: 0.05,
   ecofloPerDay: 1, eparcoPerDay: 2, maxStock: 100, daysPerWeek: 5,
   tripDuration: 1, installsPerDay: 1,

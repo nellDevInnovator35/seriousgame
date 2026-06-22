@@ -35,7 +35,9 @@ export default function App() {
   // === BOUCLE DE JEU ===
   useEffect(() => {
     if (state?.isRunning && !state?.gameOver) {
-      const ms = Math.max(50, 500 / (state.speed || 1));
+      // 11 ans = 2860 ticks. Base 315ms => partie complete ~15 min (x1),
+      // ~7,5 min (x2), ~5 min (x3). Cible : une partie dure 5 a 15 min.
+      const ms = Math.max(50, 315 / (state.speed || 1));
       loopRef.current = setInterval(() => {
         setState(prev => {
           if (!prev || !prev.isRunning || prev.gameOver) return prev;

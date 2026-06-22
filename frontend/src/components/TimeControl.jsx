@@ -27,7 +27,7 @@ export default function TimeControl({ state, onTogglePlay, onSetSpeed, onStopGam
         </button>
 
         <div className="speed-buttons">
-          {[1, 2, 5, 10].map(s => (
+          {[1, 2, 3].map(s => (
             <button
               key={s}
               className={"btn btn-speed " + (speed === s ? "active" : "")}
