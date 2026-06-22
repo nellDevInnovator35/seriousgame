@@ -12,8 +12,6 @@ export default function DevisPanel({ state, houseId, onConfirm, onClose, onResol
     installed: "🟢 Installe",
   };
 
-  const isInDistributorZone = state.showDevis?.channel === "distributor";
-
   return (
     <div className="devis-panel">
       <div className="devis-header">
@@ -52,25 +50,33 @@ export default function DevisPanel({ state, houseId, onConfirm, onClose, onResol
         <div className="devis-actions">
           {state.showDevis?.terrainIssue ? (
             <div className="alert alert-warning">
-              <p><strong>⚠️ Terrain problematique !</strong></p>
-              <p>Surface trop petite ou trop d'arbres. Installation Point Service impossible.</p>
-              <button className="btn btn-primary" onClick={() => onConfirm(house.id, "distributor")}>
-                📦 Passer par un distributeur (Ecoflo) - {state.params.priceEcofloSale}€
-              </button>
-            </div>
-          ) : isInDistributorZone ? (
-            <div>
-              <p>📍 Cette maison est dans la zone d'un distributeur.</p>
-              <button className="btn btn-primary" onClick={() => onConfirm(house.id, "distributor")}>
-                📦 Vente via distributeur - Ecoflo {house.inhabitants}h ({state.params.priceEcofloSale}€)
+              <p><strong>⚠️ Terrain problematique</strong></p>
+              <p>Sol inadapte a l'epandage : la fosse Eparco (Point Service) ne passe pas. Seul l'Ecoflo (filtre compact) convient ici.</p>
+              <button className="btn btn-primary devis-option" onClick={() => onConfirm(house.id, "distributor")}>
+                <span className="devis-option-title">📦 Distributeur — Ecoflo {house.inhabitants}h</span>
+                <span className="devis-option-price">{state.params.priceEcofloSale}€</span>
               </button>
             </div>
           ) : (
             <div>
-              <button className="btn btn-primary" onClick={() => onConfirm(house.id, "pointService")}>
-                🏪 Devis Point Service - Eparco {house.inhabitants}h ({state.params.priceEparcoInstall}€)
-              </button>
-              <p className="text-muted">Delai devis → vente : {state.params.devisToSaleDays} jours</p>
+              <p className="devis-choice-title">Choisissez le circuit de vente :</p>
+              <div className="devis-choice">
+                <button className="btn btn-primary devis-option" onClick={() => onConfirm(house.id, "pointService")}>
+                  <span className="devis-option-title">🏪 Point Service — Eparco {house.inhabitants}h</span>
+                  <span className="devis-option-price">{state.params.priceEparcoInstall}€</span>
+                  <span className="devis-option-note">+ Marge la plus elevee · ⏱ delai devis {state.params.devisToSaleDays}j, pose limitee a {state.params.installsPerDay}/jour</span>
+                </button>
+
+                {state.showDevis?.distributorAvailable ? (
+                  <button className="btn btn-secondary devis-option" onClick={() => onConfirm(house.id, "distributor")}>
+                    <span className="devis-option-title">📦 Distributeur — Ecoflo {house.inhabitants}h</span>
+                    <span className="devis-option-price">{state.params.priceEcofloSale}€</span>
+                    <span className="devis-option-note">+ Rapide (sans delai devis) · fidelise le distributeur · − marge plus faible</span>
+                  </button>
+                ) : (
+                  <p className="text-muted">📦 Aucun distributeur a portee : seul le Point Service est possible ici.</p>
+                )}
+              </div>
             </div>
           )}
         </div>

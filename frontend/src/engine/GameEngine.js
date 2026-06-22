@@ -292,14 +292,14 @@ export function sendDevis(state, houseId) {
   const s = { ...state };
   const h = s.houses.find(x => x.id === houseId);
   if (!h) return s;
-  const nd = findNearestDistributor(h, s.distributors);
   if (h.status === "needsANC" && !h.channel) {
-    if (h.hasTerrainIssue)
-      s.showDevis = { houseId, terrainIssue: true };
-    else if (nd && !nd.isCompetitor)
-      s.showDevis = { houseId, channel: "distributor" };
-    else
-      s.showDevis = { houseId, channel: "pointService" };
+    const nd = findNearestDistributor(h, s.distributors);
+    // On expose les options possibles, le joueur arbitre lui-meme le circuit.
+    s.showDevis = {
+      houseId,
+      terrainIssue: !!h.hasTerrainIssue,         // sol inadapte a l'epandage (Eparco)
+      distributorAvailable: !!(nd && !nd.isCompetitor),
+    };
   } else {
     s.showDevis = { houseId, channel: h.channel, info: true };
   }
