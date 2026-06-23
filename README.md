@@ -239,6 +239,34 @@ smartcity-anc/
 | 5 | ✅ **Tutoriel interactif** — guide pas-à-pas pour les 5 premières minutes de jeu | 🔥🔥 | ⭐ |
 | 6 | **Système de quêtes/objectifs** — "Équiper 50 maisons en 2 ans", "Zéro avis négatif pendant 6 mois" | 🔥🔥 | ⭐⭐ |
 | 7 | **Ajout du bureau d'études / prescripteur** — un acteur qui recommande tel ou tel produit selon les sols | 🔥 | ⭐⭐ |
+| 31 | 🏗️ **Investir & placer des infrastructures** — ouvrir un 2ᵉ Point Service, acheter un camion, agrandir l'usine (CAPEX avec retour sur investissement) — *voir évaluation ci-dessous* | 🔥🔥🔥 | ⭐⭐ |
+
+### 🏗️ Focus d'évaluation — Investir & placer des infrastructures
+
+> Idée : transformer une partie de l'argent gagné en **décisions d'investissement** (CAPEX) plutôt qu'en simple score. C'est le levier le plus « SimCity » qui reste cohérent avec la pédagogie métier.
+
+**Mécaniques proposées**
+
+- **Ouvrir un 2ᵉ Point Service** (≈ 60 000 €) — le joueur le **place sur la carte** ; il double la capacité de pose (1 → 2 installs/jour) et raccourcit les délais dans sa zone. Décision de couverture territoriale.
+- **Acheter un camion** (≈ 15 000 €) — permet plus d'expéditions simultanées / des tournées groupées ; baisse le risque de retard quand la demande grimpe.
+- **Agrandir l'usine** (≈ 40 000 €) — augmente la cadence de production et/ou le stock max, pour soutenir la croissance.
+
+**Apport pédagogique** — c'est le chaînon qui manque aujourd'hui : passer d'une logique purement **opérationnelle** à une logique **d'investissement**. Le joueur doit arbitrer CAPEX vs OPEX, calculer un **retour sur investissement** (un 2ᵉ Point Service ne se rentabilise que si la demande suit), et raisonner **couverture géographique** — ce qui redonne enfin du sens à la carte. Très aligné avec un public Premier Tech (décisions de capacité et d'implantation réelles).
+
+**Impact : 🔥🔥🔥** — ajoute de l'agentivité, de la rejouabilité et fait « compter la carte » ; comble le principal écart avec un vrai jeu de gestion.
+
+**Difficulté : ⭐⭐ (modérée)** — l'essentiel des briques existe déjà :
+- un poste de dépense est facile à brancher sur l'EBITDA (déjà calculé en CA − coûts) ;
+- `installsPerDay`, `tripDuration`/nombre de camions, `ecofloPerDay`/`maxStock` sont **déjà des paramètres** : il suffit de les rendre **évolutifs en cours de partie** ;
+- le placement d'un Point Service réutilise la logique de zone déjà écrite (sphères d'influence, plus proches voisins).
+
+**Points d'attention**
+
+- **Équilibrage** : un coût d'investissement trop bas casse la tension (on achète tout) ; trop haut, personne n'investit. À calibrer pour qu'un investissement bien placé soit gagnant et un investissement prématuré pénalisant.
+- **UI** : prévoir un panneau « Investir » (budget, ROI estimé) et un mode placement sur la carte.
+- **Garde-fou** : limiter le nombre d'achats pour éviter une partie « tout-en-capacité » sans risque.
+
+**Estimation** : ~1 à 1,5 jour de dev. Bon candidat pour la prochaine itération, idéalement couplé au **#2 prix dynamique** ou au **#6 quêtes** pour donner des objectifs d'investissement.
 
 ### 📊 Données & Analytics
 
