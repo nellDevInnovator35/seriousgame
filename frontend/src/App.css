@@ -512,6 +512,58 @@
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
   margin-top: 0.9rem; font-size: 0.8rem; opacity: 0.7; cursor: pointer;
 }
+
+/* === SELECTEUR DE DIFFICULTE === */
+.difficulty-select { margin-bottom: 1rem; text-align: center; }
+.difficulty-label { display: block; font-size: 0.8rem; opacity: 0.7; margin-bottom: 0.4rem; }
+.difficulty-buttons { display: flex; gap: 0.5rem; justify-content: center; }
+.btn-difficulty {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ddd;
+}
+.btn-difficulty.active {
+  background: linear-gradient(135deg, #7ec850, #4a90d9);
+  color: #fff; border-color: transparent;
+}
+.difficulty-desc { font-size: 0.78rem; opacity: 0.65; margin: 0.5rem 0 0; min-height: 2.4em; }
+
+/* === DEBRIEF ANIMATEUR === */
+.score-difficulty { text-align: center; font-size: 0.85rem; opacity: 0.75; margin-bottom: 0.5rem; }
+.score-debrief { margin: 1rem 0; }
+.score-debrief:not(.open) { display: none; }
+.score-debrief h3 { margin-bottom: 0.2rem; }
+.debrief-card {
+  background: rgba(74,144,217,0.08);
+  border-left: 3px solid #4a90d9;
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.debrief-theme { font-weight: 700; font-size: 0.9rem; }
+.debrief-obs { margin: 0.25rem 0; font-size: 0.85rem; opacity: 0.9; }
+.debrief-q { margin: 0; font-size: 0.85rem; color: #ffcc00; }
+
+/* === IMPRESSION / EXPORT PDF === */
+@media print {
+  .game-screen > * { display: none !important; }
+  .game-screen > .score-overlay {
+    display: block !important;
+    position: static !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+  .score-screen {
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+  }
+  .score-debrief { display: block !important; }
+  .score-actions { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
 .grade-circle {
   width: 80px;
   height: 80px;

@@ -20,6 +20,9 @@ export const DEFAULT_PARAMS = {
   eventCompetitorDuration: 180,
   competitorZoneHouses: 30, // taille de la zone d'influence du distributeur touchee par la guerre des prix
   eventCompetitorCaptureRate: 0.80,
+  // Probabilites quotidiennes des aleas (modulables par la difficulte)
+  eventLeakProba: 0.002, eventFactoryProba: 0.0003, eventPriceWarProba: 0.0005,
+  distributorAutoCaptureRate: 0.03,
   gameDurationYears: 11,
   daysPerYear: 260, weeksPerYear: 52, daysInMonth: 22,
 };

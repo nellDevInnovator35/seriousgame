@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { computeEbitda } from "../engine/GameEngine.js";
 import EvolutionCharts from "./EvolutionCharts.jsx";
+import { DIFFICULTIES } from "../config/difficulties.js";
 
 export default function ScoreScreen({ state, onRestart, onClose }) {
+  const [showDebrief, setShowDebrief] = useState(false);
   if (!state) return null;
 
   const { kpis, params, day, houses } = state;
@@ -71,10 +74,59 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
   const grade = ebitda > 150000 ? "A+" : ebitda > 100000 ? "A" : ebitda > 60000 ? "B"
     : ebitda > 30000 ? "C" : ebitda > 0 ? "D" : "E";
 
+  const diff = DIFFICULTIES[params.difficulty];
+
+  // --- Mode debrief animateur : observations dynamiques + questions par service ---
+  const ptCount = houses.filter(h => h.channel === "pointService").length;
+  const distCount = houses.filter(h => h.channel === "distributor").length;
+  const eur = v => Math.round(v).toLocaleString() + " €";
+  const dominantCost = [
+    ["la production", kpis.totalCostProduction],
+    ["la logistique", kpis.totalCostLogistics],
+    ["la maintenance", kpis.totalCostMaintenance],
+    ["les frais fixes", kpis.totalCostFixed],
+  ].sort((a, b) => b[1] - a[1])[0][0];
+
+  const debrief = [
+    {
+      icon: "💶", theme: "Rentabilité (Finance)",
+      obs: ebitda <= 0
+        ? "EBITDA négatif (" + eur(ebitda) + ") : les coûts ont dépassé le CA, surtout " + dominantCost + "."
+        : "EBITDA de " + eur(ebitda) + " (" + (ebitdaMargin * 100).toFixed(0) + "% du CA). Premier poste de coût : " + dominantCost + ".",
+      q: "Quels leviers concrets pour améliorer la marge sans perdre de clients ?",
+    },
+    {
+      icon: "🏭", theme: "Production & stock",
+      obs: "Coût de production cumulé : " + eur(kpis.totalCostProduction) + ".",
+      q: "La production était-elle calée sur la demande, ou a-t-on fabriqué du stock invendu ?",
+    },
+    {
+      icon: "🚛", theme: "Logistique & délais",
+      obs: "Délai moyen de " + kpis.avgDeliveryDays.toFixed(1) + " j (seuil " + params.maxDeliveryDays + " j) pour une satisfaction de " + satRate.toFixed(0) + "%.",
+      q: "Comment fiabiliser les délais et éviter les avis négatifs en chaîne ?",
+    },
+    {
+      icon: "🛒", theme: "Ventes & circuits",
+      obs: "Répartition : " + ptCount + " Point Service vs " + distCount + " distributeur. Part de marché PT : " + ptShare.toFixed(0) + "%.",
+      q: "L'arbitrage Point Service (marge) / distributeur (volume + fidélité) était-il le bon ?",
+    },
+    {
+      icon: "🏴", theme: "Concurrence",
+      obs: "Le concurrent a capté " + kpis.totalCompetitor + " maisons, soit " + eur(kpis.totalCompetitorCA || 0) + " de CA perdu.",
+      q: "Comment mieux défendre les zones attaquées (guerre des prix) et garder les distributeurs ?",
+    },
+    {
+      icon: "🔧", theme: "Maintenance & fidélisation",
+      obs: "Revenus de maintenance : " + eur(kpis.totalMaintenanceRevenue) + " (revenu récurrent).",
+      q: "La maintenance est-elle exploitée comme un revenu récurrent et un lien client durable ?",
+    },
+  ];
+
   return (
     <div className="score-overlay">
       <div className="score-screen">
         <h2>🏆 Resultats - Fin de partie</h2>
+        {diff && <div className="score-difficulty">Niveau : {diff.icon} {diff.label}</div>}
 
         <div className="score-grade">
           <div className="grade-circle">{grade}</div>
@@ -120,8 +172,24 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
           ))}
         </div>
 
+        <div className={"score-debrief" + (showDebrief ? " open" : "")}>
+          <h3>🎓 Mode débrief animateur</h3>
+          <p className="text-muted">Points de discussion à dérouler avec l'équipe, par service.</p>
+          {debrief.map((d, i) => (
+            <div key={i} className="debrief-card">
+              <div className="debrief-theme">{d.icon} {d.theme}</div>
+              <p className="debrief-obs">{d.obs}</p>
+              <p className="debrief-q">❓ {d.q}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="score-actions">
           <button className="btn btn-primary" onClick={onRestart}>🔄 Nouvelle partie</button>
+          <button className="btn btn-secondary" onClick={() => setShowDebrief(v => !v)}>
+            🎓 {showDebrief ? "Masquer le débrief" : "Mode débrief animateur"}
+          </button>
+          <button className="btn btn-secondary" onClick={() => window.print()}>🖨️ Exporter en PDF</button>
           <button className="btn btn-secondary" onClick={onClose}>Fermer</button>
         </div>
       </div>

@@ -16,6 +16,7 @@ import ScoreScreen from "./components/ScoreScreen.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
 import FicheMetier from "./components/FicheMetier.jsx";
 import Tutorial from "./components/Tutorial.jsx";
+import { DIFFICULTIES, DIFFICULTY_ORDER } from "./config/difficulties.js";
 import "./App.css";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
   const [saves, setSaves] = useState([]);
   const [showFiche, setShowFiche] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [difficulty, setDifficulty] = useState("normal");
   const loopRef = useRef(null);
 
   // Charger sauvegardes et params au demarrage
@@ -60,7 +62,8 @@ export default function App() {
 
   // === ACTIONS MENU ===
   const handleNewGame = () => {
-    const newState = createInitialState(params);
+    const preset = DIFFICULTIES[difficulty]?.params || {};
+    const newState = createInitialState({ ...params, ...preset, difficulty });
     setState(newState);
     setShowMenu(false);
     let done = false;
@@ -165,6 +168,23 @@ export default function App() {
           </p>
 
           <div className="menu-actions">
+            <div className="difficulty-select">
+              <span className="difficulty-label">Niveau de difficulté</span>
+              <div className="difficulty-buttons">
+                {DIFFICULTY_ORDER.map(id => (
+                  <button
+                    key={id}
+                    className={"btn btn-difficulty " + (difficulty === id ? "active" : "")}
+                    onClick={() => setDifficulty(id)}
+                    title={DIFFICULTIES[id].desc}
+                  >
+                    {DIFFICULTIES[id].icon} {DIFFICULTIES[id].label}
+                  </button>
+                ))}
+              </div>
+              <p className="difficulty-desc">{DIFFICULTIES[difficulty].desc}</p>
+            </div>
+
             <button className="btn btn-primary btn-large" onClick={handleNewGame}>
               {"\u{1F3AE}"} Nouvelle partie
             </button>

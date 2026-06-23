@@ -177,7 +177,7 @@ export function advanceDay(state) {
       s.houses.filter(h =>
         h.status === "needsANC" && !h.channel && distance(h, d) <= d.radius
       ).forEach(h => {
-        if (Math.random() < 0.03) {
+        if (Math.random() < p.distributorAutoCaptureRate) {
           h.channel = "competitor"; h.status = "installed";
           h.isEquipped = true; h.installDay = s.day;
           s.kpis.totalCompetitor++; s.kpis.totalCompetitorCA += p.priceCompetitor;
@@ -201,7 +201,7 @@ export function advanceDay(state) {
   // --- Evenements aleatoires ---
 
   // Fuite
-  if (Math.random() < 0.002) {
+  if (Math.random() < p.eventLeakProba) {
     const eq = s.houses.filter(h => h.isEquipped && !h.hasLeak && h.channel !== "competitor");
     if (eq.length) {
       const h = eq[Math.floor(Math.random() * eq.length)];
@@ -218,7 +218,7 @@ export function advanceDay(state) {
   }
 
   // Fermeture usine
-  if (Math.random() < 0.0003 && !s.factory.isClosed) {
+  if (Math.random() < p.eventFactoryProba && !s.factory.isClosed) {
     s.factory.isClosed = true;
     s.factory.closedUntilDay = s.day + p.eventFactoryClosureDays;
     s.activeEvents.push({
@@ -232,7 +232,7 @@ export function advanceDay(state) {
   }
 
   // Concurrent casse les prix : cible la zone d'influence d'UN distributeur
-  if (Math.random() < 0.0005 && !s.activeEvents.some(e => e.type === "competitorPriceWar")
+  if (Math.random() < p.eventPriceWarProba && !s.activeEvents.some(e => e.type === "competitorPriceWar")
     && s.distributors.length > 0) {
     const d = s.distributors[Math.floor(Math.random() * s.distributors.length)];
     const zoneHouseIds = findNearestHouses(d, s.houses, p.competitorZoneHouses).map(h => h.id);
