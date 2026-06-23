@@ -3,7 +3,7 @@ import { DEFAULT_PARAMS } from "./config/defaultParams.js";
 import {
   createInitialState, advanceDay, sendDevis, confirmDevis,
   setWeeklyPlan, shipProduct, resolveLeak, performMaintenance,
-  processDevisPending,
+  processDevisPending, invest, placePointService,
 } from "./engine/GameEngine.js";
 import { gameApi } from "./api/gameApi.js";
 import GameMap from "./components/GameMap.jsx";
@@ -16,6 +16,7 @@ import ScoreScreen from "./components/ScoreScreen.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
 import FicheMetier from "./components/FicheMetier.jsx";
 import Tutorial from "./components/Tutorial.jsx";
+import InvestPanel from "./components/InvestPanel.jsx";
 import { DIFFICULTIES, DIFFICULTY_ORDER } from "./config/difficulties.js";
 import "./App.css";
 
@@ -30,6 +31,8 @@ export default function App() {
   const [showFiche, setShowFiche] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [difficulty, setDifficulty] = useState("normal");
+  const [showInvest, setShowInvest] = useState(false);
+  const [placingPS, setPlacingPS] = useState(false);
   const loopRef = useRef(null);
 
   // Charger sauvegardes et params au demarrage
@@ -142,6 +145,14 @@ export default function App() {
     setState(prev => ({ ...prev, showEvent: null }));
   };
 
+  // === INVESTISSEMENTS ===
+  const handleInvest = (type) => setState(prev => invest(prev, type));
+  const handleStartPlacePS = () => { setShowInvest(false); setPlacingPS(true); };
+  const handlePlacePS = (x, y) => {
+    const next = placePointService(state, x, y);
+    if (next !== state) { setState(next); setPlacingPS(false); }
+  };
+
   const handleSaveParams = (newParams) => {
     setParams(newParams);
     gameApi.saveParams(newParams).catch(() => {});
@@ -249,6 +260,9 @@ export default function App() {
             onChange={e => setSaveName(e.target.value)}
             placeholder="Nom de la partie"
           />
+          <button className="btn btn-sm" onClick={() => setShowInvest(true)} title="Investir">
+            {"\u{1F3D7}"}
+          </button>
           <button className="btn btn-sm" onClick={() => setShowTutorial(true)} title="Tutoriel">
             {"?"}
           </button>
@@ -275,8 +289,16 @@ export default function App() {
             state={state}
             onHouseClick={handleHouseClick}
             onBuildingClick={setShowFiche}
+            placingPointService={placingPS}
+            onPlacePointService={handlePlacePS}
             selectedHouse={selectedHouse}
           />
+          {placingPS && (
+            <div className="placing-banner">
+              🏪 Cliquez une tuile libre pour placer le Point Service
+              <button className="btn btn-sm" onClick={() => setPlacingPS(false)}>Annuler</button>
+            </div>
+          )}
         </div>
 
         {/* Panneau lateral droit */}
@@ -314,6 +336,16 @@ export default function App() {
           state={state}
           onRestart={handleRestart}
           onClose={() => setState(prev => ({ ...prev, showScore: false }))}
+        />
+      )}
+
+      {/* === INVESTIR === */}
+      {showInvest && (
+        <InvestPanel
+          state={state}
+          onInvest={handleInvest}
+          onStartPlacePS={handleStartPlacePS}
+          onClose={() => setShowInvest(false)}
         />
       )}
 

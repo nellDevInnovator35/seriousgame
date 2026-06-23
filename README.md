@@ -40,7 +40,7 @@ Une partie dure **5 à 15 minutes** selon la vitesse choisie.
                         🏭 Usine PT (hors communes)
 ```
 
-- **Jusqu'à 200 maisons** sur le territoire. **≈12 sont en demande au départ** ; le reste du parc existant émerge progressivement (contrôles SPANC étalés), au rythme de **1 à 3 nouvelles demandes par mois**. La demande reste donc active jusque vers la fin de partie.
+- **Jusqu'à 160 maisons** sur le territoire (le reste des tuiles reste libre pour placer des infrastructures). **≈12 sont en demande au départ** ; le reste du parc existant émerge progressivement (contrôles SPANC étalés), au rythme de **1 à 3 nouvelles demandes par mois**. La demande reste donc active jusque vers la fin de partie.
 - **1 Point Service** (vente directe Eparco) dans la commune A
 - **2 Distributeurs** placés aléatoirement avec une sphère d'influence de 2 km
 - **1 Usine** Premier Tech hors des communes
@@ -91,6 +91,7 @@ Un **tutoriel** s'affiche au lancement (passable, et rouvrable via le bouton **?
 | **Résoudre une fuite** | Cliquer sur une maison rouge 🔴 → "Intervenir" | Doit être fait sous 2 jours sinon client mécontent |
 | **Effectuer la maintenance** | Cliquer sur une maison avec 🔧 → "Effectuer" | Visite tous les 2 ans sur les installations PT |
 | **Contrôler le temps** | Play/Pause + vitesse x1 à x3 | Partie complète en ~15 min (x1), ~7,5 min (x2), ~5 min (x3) |
+| **Investir** | Bouton 🏗️ → 2ᵉ Point Service (à placer), camion, agrandir l'usine | Augmente la capacité (pose, logistique, production) ; le CAPEX est déduit de l'EBITDA |
 
 ### Règles clés
 - ⏱️ **Livraison > 20 jours** → avis négatif → les 5 voisins les plus proches commandent chez le concurrent
@@ -221,7 +222,10 @@ smartcity-anc/
             ├── EventPopup.jsx        # Événements aléatoires
             ├── EvolutionCharts.jsx   # Courbes d'évolution (débrief)
             ├── ScoreScreen.jsx       # Résultats fin de partie
-            └── AdminPanel.jsx        # Paramètres éditables
+            ├── FicheMetier.jsx       # Fiches métier par poste
+            ├── Tutorial.jsx         # Tutoriel interactif
+            ├── InvestPanel.jsx      # Investissements (CAPEX)
+            └── AdminPanel.jsx       # Paramètres éditables
 ```
 
 ---
@@ -239,11 +243,13 @@ smartcity-anc/
 | 5 | ✅ **Tutoriel interactif** — guide pas-à-pas pour les 5 premières minutes de jeu | 🔥🔥 | ⭐ |
 | 6 | **Système de quêtes/objectifs** — "Équiper 50 maisons en 2 ans", "Zéro avis négatif pendant 6 mois" | 🔥🔥 | ⭐⭐ |
 | 7 | **Ajout du bureau d'études / prescripteur** — un acteur qui recommande tel ou tel produit selon les sols | 🔥 | ⭐⭐ |
-| 31 | 🏗️ **Investir & placer des infrastructures** — ouvrir un 2ᵉ Point Service, acheter un camion, agrandir l'usine (CAPEX avec retour sur investissement) — *voir évaluation ci-dessous* | 🔥🔥🔥 | ⭐⭐ |
+| 31 | ✅ 🏗️ **Investir & placer des infrastructures** — 2ᵉ Point Service (placement carte), camion, agrandissement usine ; CAPEX déduit de l'EBITDA *(fait — voir évaluation ci-dessous)* | 🔥🔥🔥 | ⭐⭐ |
 
 ### 🏗️ Focus d'évaluation — Investir & placer des infrastructures
 
-> Idée : transformer une partie de l'argent gagné en **décisions d'investissement** (CAPEX) plutôt qu'en simple score. C'est le levier le plus « SimCity » qui reste cohérent avec la pédagogie métier.
+> ✅ **Implémenté.** Bouton 🏗️ Investir : 2ᵉ Point Service (placement sur une tuile libre, surlignée en vert), camion (+expéditions/jour), agrandissement usine (+production & stock). Chaque achat est un CAPEX déduit de l'EBITDA. Paramètres (prix, plafonds, effets) éditables dans l'admin.
+>
+> Idée d'origine : transformer une partie de l'argent gagné en **décisions d'investissement** (CAPEX) plutôt qu'en simple score. C'est le levier le plus « SimCity » qui reste cohérent avec la pédagogie métier.
 
 **Mécaniques proposées**
 

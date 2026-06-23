@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import { renderMap, screenToGrid } from "./IsometricRenderer.js";
 
-export default function GameMap({ state, onHouseClick, onBuildingClick, selectedHouse }) {
+export default function GameMap({ state, onHouseClick, onBuildingClick, placingPointService, onPlacePointService, selectedHouse }) {
   const canvasRef = useRef(null);
   const hovRef = useRef(null);
   const offRef = useRef({ offsetX: 0, offsetY: 0 });
@@ -9,8 +9,8 @@ export default function GameMap({ state, onHouseClick, onBuildingClick, selected
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv || !state) return;
-    offRef.current = renderMap(cv.getContext("2d"), cv, state, hovRef.current, selectedHouse);
-  }, [state, selectedHouse]);
+    offRef.current = renderMap(cv.getContext("2d"), cv, state, hovRef.current, selectedHouse, placingPointService);
+  }, [state, selectedHouse, placingPointService]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -48,6 +48,13 @@ export default function GameMap({ state, onHouseClick, onBuildingClick, selected
       e.clientX - r.left, e.clientY - r.top,
       offRef.current.offsetX, offRef.current.offsetY
     );
+    // Mode placement d'un Point Service
+    if (placingPointService && onPlacePointService) {
+      if (g.x >= 0 && g.x < state.params.mapWidth && g.y >= 0 && g.y < state.params.mapHeight) {
+        onPlacePointService(g.x, g.y);
+      }
+      return;
+    }
     // Batiments cliquables -> fiche metier
     if (onBuildingClick) {
       const f = state.factory, ps = state.pointService;
@@ -60,7 +67,7 @@ export default function GameMap({ state, onHouseClick, onBuildingClick, selected
       h.appearedDay !== null && h.appearedDay <= state.day
     );
     if (house) onHouseClick(house.id);
-  }, [state, onHouseClick, onBuildingClick]);
+  }, [state, onHouseClick, onBuildingClick, placingPointService, onPlacePointService]);
 
   return (
     <div className="game-map-container">

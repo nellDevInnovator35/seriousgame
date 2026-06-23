@@ -142,7 +142,7 @@ function drawLegend(ctx, x, y) {
   });
 }
 
-export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse) {
+export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse, placing) {
   const { tiles, factory, pointService, distributors, houses, trucks, day, params } = state;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const ox = canvas.width / 2, oy = 80;
@@ -174,6 +174,20 @@ export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse) {
     ctx.strokeStyle = "rgba(136,68,204,0.25)";
     ctx.lineWidth = 1;
     ctx.stroke();
+  }
+
+  // Mode placement d'un Point Service : surligner les tuiles libres
+  if (placing) {
+    const extra = state.extraPointServices || [];
+    for (const t of tiles) {
+      const free = !t.building && !extra.some(e => e.x === t.x && e.y === t.y);
+      if (!free) continue;
+      const { x: sx, y: sy } = gridToScreen(t.x, t.y, ox, oy);
+      diamond(ctx, sx, sy, "rgba(126,200,80,0.45)");
+      ctx.strokeStyle = "rgba(126,200,80,0.9)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
   }
 
   // Zone ciblee par la guerre des prix (mise en evidence rouge)
@@ -214,6 +228,12 @@ export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse) {
   // Point Service
   const ps = gridToScreen(pointService.x, pointService.y, ox, oy);
   drawBuilding(ctx, ps.x, ps.y, C.ps, "#cc6600", "POINT SVC");
+
+  // Points Service supplementaires (investissements)
+  for (const eps of (state.extraPointServices || [])) {
+    const e = gridToScreen(eps.x, eps.y, ox, oy);
+    drawBuilding(ctx, e.x, e.y, C.ps, "#cc6600", "PT SVC +");
+  }
 
   // Distributeurs
   for (const d of distributors) {

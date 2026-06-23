@@ -76,6 +76,20 @@ export default function AdminPanel({ params, onSave, onClose }) {
       ],
     },
     {
+      title: "🏗️ Investissements",
+      fields: [
+        ["pricePointService", "Prix 2e Point Service (€)"],
+        ["priceTruck", "Prix camion (€)"],
+        ["priceFactoryUpgrade", "Prix agrandissement usine (€)"],
+        ["maxPointServices", "Max Points Service"],
+        ["maxTrucks", "Max camions"],
+        ["maxFactoryUpgrades", "Max agrandissements"],
+        ["maxShipmentsPerDay", "Expeditions / jour (base)"],
+        ["truckCapacityBonus", "Bonus expeditions / camion"],
+        ["factoryUpgradeStock", "Bonus stock / agrandissement"],
+      ],
+    },
+    {
       title: "📊 Scoring",
       fields: [
         ["gameDurationYears", "Duree du jeu (annees)"],

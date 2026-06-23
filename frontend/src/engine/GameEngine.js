@@ -8,7 +8,8 @@ export function computeEbitda(kpis) {
   const totalCosts = (kpis.totalCostProduction || 0)
     + (kpis.totalCostLogistics || 0)
     + (kpis.totalCostMaintenance || 0)
-    + (kpis.totalCostFixed || 0);
+    + (kpis.totalCostFixed || 0)
+    + (kpis.totalCostInvestment || 0);
   const ebitda = kpis.totalCA - totalCosts;
   const ebitdaMargin = kpis.totalCA > 0 ? ebitda / kpis.totalCA : 0;
   return { totalCosts, ebitda, ebitdaMargin };
@@ -44,8 +45,12 @@ export function createInitialState(params = DEFAULT_PARAMS) {
       avgDeliveryDays: 0, deliveryDaysSum: 0, deliveryCount: 0,
       // Postes de couts pour l'EBITDA reel
       totalCostProduction: 0, totalCostLogistics: 0,
-      totalCostMaintenance: 0, totalCostFixed: 0,
+      totalCostMaintenance: 0, totalCostFixed: 0, totalCostInvestment: 0,
     },
+    // Investissements (CAPEX) realises par le joueur
+    investments: { pointServices: 0, trucks: 0, factoryUpgrades: 0 },
+    extraPointServices: [], // points service supplementaires places sur la carte
+    shipmentsToday: 0,
     activeEvents: [], eventLog: [],
     history: [], // releve mensuel pour les courbes d'evolution
     nextHouseIndex: activeCount,
@@ -94,7 +99,15 @@ export function advanceDay(state) {
     distributors: state.distributors.map(d => ({ ...d })),
   };
   const p = s.params;
+  // Capacites effectives selon les investissements (CAPEX)
+  const inv = s.investments || { pointServices: 0, trucks: 0, factoryUpgrades: 0 };
+  const ecofloPerDayEff = p.ecofloPerDay + inv.factoryUpgrades;
+  const eparcoPerDayEff = p.eparcoPerDay + inv.factoryUpgrades;
+  const maxStockEff = p.maxStock + inv.factoryUpgrades * (p.factoryUpgradeStock || 50);
+  const installsPerDayEff = p.installsPerDay + inv.pointServices;
+
   s.day++;
+  s.shipmentsToday = 0; // remise a zero du compteur d'expeditions quotidien
 
   // Fin de partie (11 ans)
   if (Math.floor(s.day / p.daysPerYear) >= p.gameDurationYears) {
@@ -116,15 +129,15 @@ export function advanceDay(state) {
 
   // --- Production (si usine ouverte, jours ouvres) ---
   if (!s.factory.isClosed && s.day % 7 < p.daysPerWeek) {
-    if (s.weeklyPlan.ecoflo > 0 && s.factory.totalStock < p.maxStock) {
-      const add = Math.min(p.ecofloPerDay, p.maxStock - s.factory.totalStock);
+    if (s.weeklyPlan.ecoflo > 0 && s.factory.totalStock < maxStockEff) {
+      const add = Math.min(ecofloPerDayEff, maxStockEff - s.factory.totalStock);
       const k = Math.random() < 0.5 ? "ecoflo4" : "ecoflo5";
       s.factory.stock[k] += add;
       s.factory.totalStock += add;
       s.kpis.totalCostProduction += add * p.costProductionEcoflo;
     }
-    if (s.weeklyPlan.eparco > 0 && s.factory.totalStock < p.maxStock) {
-      const add = Math.min(p.eparcoPerDay, p.maxStock - s.factory.totalStock);
+    if (s.weeklyPlan.eparco > 0 && s.factory.totalStock < maxStockEff) {
+      const add = Math.min(eparcoPerDayEff, maxStockEff - s.factory.totalStock);
       s.factory.stock.eparco4 += Math.ceil(add / 2);
       s.factory.stock.eparco5 += Math.floor(add / 2);
       s.factory.totalStock += add;
@@ -151,7 +164,7 @@ export function advanceDay(state) {
   // --- Installations ---
   let installsDone = 0;
   for (const h of s.houses) {
-    if (h.status === "installing" && h.channel === "pointService" && installsDone < p.installsPerDay) {
+    if (h.status === "installing" && h.channel === "pointService" && installsDone < installsPerDayEff) {
       doInstall(h, s, p.priceEparcoInstall);
       installsDone++;
     }
@@ -377,6 +390,12 @@ export function shipProduct(state, houseId) {
   const h = s.houses.find(x => x.id === houseId);
   if (!h || !h.product || s.factory.stock[h.product] <= 0) return s;
 
+  // Plafond d'expeditions par jour (logistique) : base + camions achetes
+  const inv = s.investments || { trucks: 0 };
+  const maxShip = (s.params.maxShipmentsPerDay || 4) + inv.trucks * (s.params.truckCapacityBonus || 2);
+  if ((s.shipmentsToday || 0) >= maxShip) return s;
+  s.shipmentsToday = (s.shipmentsToday || 0) + 1;
+
   s.factory.stock[h.product]--;
   s.factory.totalStock--;
   s.kpis.totalCostLogistics += s.params.costPerTrip;
@@ -417,4 +436,49 @@ export function performMaintenance(state, houseId) {
     s.kpis.totalCostMaintenance += s.params.maintenanceCostPerVisit;
   }
   return s;
+}
+
+// ========== INVESTISSEMENTS (CAPEX) ==========
+
+// Config des investissements disponibles (prix + plafond)
+export function investConfig(params) {
+  return {
+    truck: { price: params.priceTruck, max: params.maxTrucks, key: "trucks" },
+    factory: { price: params.priceFactoryUpgrade, max: params.maxFactoryUpgrades, key: "factoryUpgrades" },
+    pointService: { price: params.pricePointService, max: params.maxPointServices, key: "pointServices" },
+  };
+}
+
+// Achat immediat (camion, agrandissement usine). Le point service passe par placePointService.
+export function invest(state, type) {
+  const cfg = investConfig(state.params)[type];
+  if (!cfg || type === "pointService") return state;
+  const inv = state.investments || { pointServices: 0, trucks: 0, factoryUpgrades: 0 };
+  if (inv[cfg.key] >= cfg.max) return state; // plafond atteint
+  return {
+    ...state,
+    investments: { ...inv, [cfg.key]: inv[cfg.key] + 1 },
+    kpis: { ...state.kpis, totalCostInvestment: (state.kpis.totalCostInvestment || 0) + cfg.price },
+  };
+}
+
+// Placer un 2e (ou 3e) Point Service sur une tuile libre
+export function placePointService(state, x, y) {
+  const p = state.params;
+  const inv = state.investments || { pointServices: 0, trucks: 0, factoryUpgrades: 0 };
+  if (inv.pointServices >= p.maxPointServices) return state;
+  // Tuile libre ? (pas de batiment, pas de maison apparue, pas l'usine/PS/distrib)
+  const occupied =
+    (state.houses || []).some(h => h.x === x && h.y === y) ||
+    (state.distributors || []).some(d => d.x === x && d.y === y) ||
+    (state.pointService && state.pointService.x === x && state.pointService.y === y) ||
+    (state.factory && state.factory.x === x && state.factory.y === y) ||
+    (state.extraPointServices || []).some(ps => ps.x === x && ps.y === y);
+  if (occupied) return state;
+  return {
+    ...state,
+    extraPointServices: [...(state.extraPointServices || []), { x, y }],
+    investments: { ...inv, pointServices: inv.pointServices + 1 },
+    kpis: { ...state.kpis, totalCostInvestment: (state.kpis.totalCostInvestment || 0) + p.pricePointService },
+  };
 }
