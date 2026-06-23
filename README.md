@@ -186,7 +186,7 @@ docker-compose up --build
 | **Rendu carte** | Canvas 2D (vue isométrique) |
 | **Graphiques** | SVG sans dépendance |
 | **Backend** | Node.js + Express |
-| **Stockage** | JSON (fichiers locaux) |
+| **Stockage** | SQLite (sql.js, fichier local — sans compilation) |
 | **Conteneurisation** | Docker + docker-compose |
 
 ### Architecture
@@ -196,7 +196,7 @@ smartcity-anc/
 ├── backend/
 │   └── src/
 │       ├── index.js              # Serveur Express
-│       ├── database.js           # Stockage JSON
+│       ├── database.js           # Stockage SQLite (sql.js)
 │       └── routes/
 │           ├── game.js           # Save / Load / List
 │           └── admin.js          # Paramètres
@@ -301,7 +301,7 @@ smartcity-anc/
 
 | # | Amélioration | Impact | Difficulté |
 |---|-------------|--------|------------|
-| 22 | **Base de données SQLite** — remplacer le stockage JSON par SQLite (via sql.js, pas de compilation) | 🔥 | ⭐ |
+| 22 | ✅ **Base de données SQLite** — stockage via sql.js (sans compilation), migration auto depuis l'ancien JSON *(fait)* | 🔥 | ⭐ |
 | 23 | **Tests unitaires** — tester le moteur de jeu (Jest / Vitest) | 🔥🔥 | ⭐⭐ |
 | 24 | ✅ **PWA** — installer le jeu comme une app sur le bureau / tablette | 🔥 | ⭐ |
 | 25 | **CI/CD** — déploiement automatique sur push Git | 🔥 | ⭐⭐ |
