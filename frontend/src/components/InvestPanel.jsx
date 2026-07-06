@@ -12,7 +12,7 @@ export default function InvestPanel({ state, onInvest, onStartPlacePS, onClose }
     {
       type: "pointService", icon: "🏪", title: "2ᵉ Point Service",
       price: p.pricePointService, count: inv.pointServices, max: p.maxPointServices,
-      effet: "+1 installation/jour (capacité de pose). À placer sur la carte.",
+      effet: "+" + p.installsPerDay + " installation/jour pour les maisons dont il est le PS le plus proche. Placez-le là où est la demande : mal placé, il ne sert à rien !",
       action: onStartPlacePS, cta: "Acheter & placer",
     },
     {

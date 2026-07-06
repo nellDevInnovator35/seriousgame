@@ -3,6 +3,7 @@ const cors = require("cors");
 const { initDB } = require("./database");
 const gameRoutes = require("./routes/game");
 const adminRoutes = require("./routes/admin");
+const scoreRoutes = require("./routes/scores");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,6 +14,7 @@ async function main() {
   const db = await initDB();
   app.use("/api/game", gameRoutes(db));
   app.use("/api/admin", adminRoutes(db));
+  app.use("/api/scores", scoreRoutes(db));
   app.get("/api/health", (req, res) => res.json({ status: "ok" }));
   app.listen(PORT, () => console.log("SmartCity ANC Backend port " + PORT));
 }

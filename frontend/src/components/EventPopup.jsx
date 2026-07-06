@@ -6,6 +6,11 @@ export default function EventPopup({ event, onClose }) {
     factoryClosure: "\u{1F3ED}",
     competitorPriceWar: "\u{1F4B8}",
     distributorSwitch: "\u{1F4E6}",
+    mediaDue: "\u{1F504}",
+    mediaLost: "❌",
+    maintenanceLost: "\u{1F527}",
+    questDone: "\u{1F3AF}",
+    questFailed: "\u{1F614}",
   };
 
   const titles = {
@@ -13,6 +18,11 @@ export default function EventPopup({ event, onClose }) {
     factoryClosure: "Usine fermee !",
     competitorPriceWar: "Guerre des prix !",
     distributorSwitch: "Distributeur perdu !",
+    mediaDue: "Milieu filtrant en fin de vie !",
+    mediaLost: "Contrat perdu !",
+    maintenanceLost: "Contrat resilie !",
+    questDone: "Objectif atteint !",
+    questFailed: "Objectif manque...",
   };
 
   return (

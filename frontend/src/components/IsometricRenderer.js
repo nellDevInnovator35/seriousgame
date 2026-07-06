@@ -4,7 +4,7 @@ const C = {
   grass: "#7ec850", grassDk: "#5ea030", trees: "#2d8a4e", slope: "#c4a86c",
   hNone: "#999", hNeed: "#ffcc00", hDevis: "#ff9900", hOrder: "#ff6600",
   hShip: "#9966ff", hInst: "#6699ff", hDone: "#00aa44", hComp: "#dd3333",
-  hLeak: "#ff0000", hMaint: "#ff66cc",
+  hLeak: "#ff0000", hMaint: "#ff66cc", hMedia: "#00cccc",
   factory: "#555", factClosed: "#aa3333",
   ps: "#ff8800", dist: "#8844cc", distComp: "#cc2222",
   trPT: "#0066cc", trDist: "#ff8800",
@@ -36,10 +36,11 @@ function diamond(ctx, sx, sy, color) {
   ctx.stroke();
 }
 
-function drawHouse(ctx, sx, sy, status, leak, maint, comp) {
+function drawHouse(ctx, sx, sy, status, leak, maint, comp, media) {
   let color = C.hNone;
   if (comp) color = C.hComp;
   else if (leak) color = C.hLeak;
+  else if (media) color = C.hMedia;
   else if (maint) color = C.hMaint;
   else {
     const m = {
@@ -72,6 +73,11 @@ function drawHouse(ctx, sx, sy, status, leak, maint, comp) {
     ctx.fillStyle = "#fa0";
     ctx.font = "bold 10px Arial";
     ctx.fillText("\u2699", sx - 5, sy - 30);
+  }
+  if (media) {
+    ctx.fillStyle = "#0cc";
+    ctx.font = "bold 10px Arial";
+    ctx.fillText("\u21bb", sx + 2, sy - 30);
   }
 }
 
@@ -118,9 +124,9 @@ function drawTruck(ctx, sx, sy, type) {
 
 function drawLegend(ctx, x, y) {
   ctx.fillStyle = "rgba(22,33,62,0.92)";
-  ctx.fillRect(x, y, 160, 200);
+  ctx.fillRect(x, y, 160, 214);
   ctx.strokeStyle = "#444";
-  ctx.strokeRect(x, y, 160, 200);
+  ctx.strokeRect(x, y, 160, 214);
   ctx.font = "bold 10px Arial";
   ctx.fillStyle = "#aaa";
   ctx.fillText("Legende", x + 8, y + 14);
@@ -129,6 +135,7 @@ function drawLegend(ctx, x, y) {
     [C.hOrder, "Commande"], [C.hShip, "En livraison"],
     [C.hInst, "Installation"], [C.hDone, "Installe PT"],
     [C.hComp, "Concurrent"], [C.hLeak, "Fuite !"],
+    [C.hMedia, "Milieu filtrant"],
     [C.ps, "Point Service"], [C.dist, "Distributeur PT"],
     [C.distComp, "Distrib. Concurrent"], [C.factory, "Usine PT"],
     [C.trPT, "Camion PT"], [C.trDist, "Camion Distrib."],
@@ -249,7 +256,7 @@ export function renderMap(ctx, canvas, state, hoveredTile, selectedHouse, placin
   for (const h of houses) {
     if (h.appearedDay !== null && h.appearedDay <= day) {
       const hs = gridToScreen(h.x, h.y, ox, oy);
-      drawHouse(ctx, hs.x, hs.y, h.status, h.hasLeak, h.needsMaintenance, h.channel === "competitor");
+      drawHouse(ctx, hs.x, hs.y, h.status, h.hasLeak, h.needsMaintenance, h.channel === "competitor", h.needsMediaReplacement);
       if (selectedHouse === h.id) {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;

@@ -1,6 +1,9 @@
-export default function DevisPanel({ state, houseId, onConfirm, onClose, onResolveLeak, onMaintenance, onShip }) {
+import { tripDays } from "../engine/GameEngine.js";
+
+export default function DevisPanel({ state, houseId, onConfirm, onClose, onResolveLeak, onMaintenance, onShip, onShipMedia }) {
   const house = state.houses.find(h => h.id === houseId);
   if (!house) return null;
+  const routeDays = tripDays(state.params, state.factory, house);
 
   const statusLabels = {
     none: "Pas encore apparue",
@@ -24,6 +27,7 @@ export default function DevisPanel({ state, houseId, onConfirm, onClose, onResol
         <p><strong>Habitants :</strong> {house.inhabitants}</p>
         <p><strong>Terrain :</strong> {house.terrain === "trees" ? "🌳 Arbore" : house.terrain === "slope" ? "⛰️ Pente" : "🌿 Plat"}</p>
         <p><strong>Statut :</strong> {house.channel === "competitor" ? "❌ Concurrent" : statusLabels[house.status] || house.status}</p>
+        <p><strong>Trajet usine :</strong> 🚛 ≈ {routeDays} jour{routeDays > 1 ? "s" : ""}</p>
         {house.satisfaction < 1 && <p className="text-danger"><strong>⚠️ Client insatisfait</strong></p>}
       </div>
 
@@ -37,9 +41,42 @@ export default function DevisPanel({ state, houseId, onConfirm, onClose, onResol
         </div>
       )}
 
+      {house.needsMediaReplacement && !house.mediaShipping && (
+        <div className="alert alert-warning">
+          <p><strong>🔄 Milieu filtrant en fin de vie</strong></p>
+          <p>
+            A remplacer sous {(state.params.mediaReplacementMaxDays || 90) - (state.day - (house.mediaDueDay || state.day))} jours,
+            sinon fuite et perte du contrat de maintenance.
+            Facture : {state.params.priceMediaReplacement}€.
+          </p>
+          {(state.factory.stock.media || 0) > 0
+            ? <button className="btn btn-primary" onClick={() => onShipMedia(house.id)}>
+                🚛 Expedier un milieu filtrant (stock: {state.factory.stock.media})
+              </button>
+            : <p className="text-danger">📦 Pas de milieu filtrant en stock ! Planifiez la production.</p>
+          }
+        </div>
+      )}
+
+      {house.mediaShipping && (
+        <div className="alert alert-warning">
+          <p><strong>🚛 Milieu filtrant en cours de livraison</strong></p>
+        </div>
+      )}
+
+      {house.contractLost && (
+        <div className="alert alert-danger">
+          <p><strong>❌ Contrat de maintenance perdu</strong> (milieu filtrant non remplace a temps)</p>
+        </div>
+      )}
+
       {house.needsMaintenance && (
         <div className="alert alert-warning">
           <p><strong>🔧 Maintenance requise</strong> (visite bisannuelle)</p>
+          <p>
+            Négligée &gt; {state.params.maintenanceGraceDays || 60}j : risque de fuite quotidien ·
+            &gt; {state.params.maintenanceLostDays || 120}j : le client résilie le contrat.
+          </p>
           <button className="btn btn-warning" onClick={() => onMaintenance(house.id)}>
             ✅ Effectuer la maintenance
           </button>

@@ -45,6 +45,18 @@ async function initDB() {
       id INTEGER PRIMARY KEY CHECK (id = 1),
       data TEXT
     );
+    CREATE TABLE IF NOT EXISTS scores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      difficulty TEXT,
+      seed TEXT,
+      ebitda INTEGER,
+      ca INTEGER,
+      satisfaction REAL,
+      pt_share REAL,
+      grade TEXT,
+      created_at TEXT
+    );
   `);
 
   const persist = () => {
@@ -91,6 +103,40 @@ async function initDB() {
     deleteSave(id) {
       db.run("DELETE FROM saves WHERE id = ?", [Number(id)]);
       persist();
+    },
+
+    // === SCORES (leaderboard) ===
+    addScore(e) {
+      const now = new Date().toISOString();
+      db.run(
+        `INSERT INTO scores (name, difficulty, seed, ebitda, ca, satisfaction, pt_share, grade, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [e.name, e.difficulty, e.seed, e.ebitda, e.ca, e.satisfaction, e.ptShare, e.grade, now]
+      );
+      persist();
+      // Rang dans la meme difficulte (1 = meilleur EBITDA)
+      const stmt = db.prepare(
+        "SELECT COUNT(*) AS n FROM scores WHERE difficulty = ? AND ebitda > ?"
+      );
+      stmt.bind([e.difficulty, e.ebitda]);
+      stmt.step();
+      const rank = stmt.getAsObject().n + 1;
+      stmt.free();
+      return { rank };
+    },
+    getScores({ difficulty, seed, limit = 50 } = {}) {
+      let sql = "SELECT id, name, difficulty, seed, ebitda, ca, satisfaction, pt_share, grade, created_at FROM scores";
+      const where = [], args = [];
+      if (difficulty) { where.push("difficulty = ?"); args.push(difficulty); }
+      if (seed) { where.push("seed = ?"); args.push(String(seed)); }
+      if (where.length) sql += " WHERE " + where.join(" AND ");
+      sql += " ORDER BY ebitda DESC, created_at ASC LIMIT " + Math.min(Number(limit) || 50, 200);
+      const stmt = db.prepare(sql);
+      stmt.bind(args);
+      const rows = [];
+      while (stmt.step()) rows.push(stmt.getAsObject());
+      stmt.free();
+      return rows;
     },
 
     // === PARAMS ===

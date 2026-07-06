@@ -1,11 +1,28 @@
 import { useState } from "react";
 import { computeEbitda } from "../engine/GameEngine.js";
+import { gameApi } from "../api/gameApi.js";
 import EvolutionCharts from "./EvolutionCharts.jsx";
 import { DIFFICULTIES } from "../config/difficulties.js";
+import { QUEST_DEFS } from "../config/quests.js";
 
 export default function ScoreScreen({ state, onRestart, onClose }) {
   const [showDebrief, setShowDebrief] = useState(false);
+  const [pseudo, setPseudo] = useState("");
+  const [published, setPublished] = useState(null);
+  const [publishError, setPublishError] = useState(false);
   if (!state) return null;
+
+  const publishScore = async () => {
+    setPublishError(false);
+    const r = await gameApi.publishScore({
+      name: pseudo,
+      difficulty: state.params.difficulty,
+      seed: state.seed,
+      kpis: state.kpis,
+    });
+    if (r?.success) setPublished(r);
+    else setPublishError(true);
+  };
 
   const { kpis, params, day, houses } = state;
   const { ebitda, totalCosts, ebitdaMargin } = computeEbitda(kpis);
@@ -15,6 +32,10 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
   const satRate = kpis.deliveryCount > 0
     ? (kpis.satisfiedClients / kpis.deliveryCount * 100)
     : 100;
+
+  const quests = state.quests || [];
+  const qDone = quests.filter(q => q.status === "completed");
+  const qFailed = quests.filter(q => q.status === "failed");
 
   const insights = [];
 
@@ -53,6 +74,30 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
     insights.push({
       icon: "🔧", title: "Maintenance negligee",
       msg: maintNeeded + " installations necessitent une maintenance. Le SAV est crucial pour la fidelisation.",
+      service: "SAV & Maintenance",
+    });
+  }
+
+  if ((kpis.maintenanceLostContracts || 0) > 0) {
+    insights.push({
+      icon: "🔧", title: "Contrats resilies (maintenance)",
+      msg: kpis.maintenanceLostContracts + " client(s) ont resilie leur contrat car la visite de maintenance n'a jamais ete faite. Chaque contrat perdu, c'est du revenu recurrent envole.",
+      service: "SAV & Maintenance",
+    });
+  }
+
+  if (quests.length > 0 && qFailed.length > qDone.length) {
+    insights.push({
+      icon: "🎯", title: "Objectifs manques",
+      msg: qFailed.length + " objectif(s) manque(s) sur " + quests.length + ". Les objectifs structurent les priorites : les relire en debut de partie aide a arbitrer.",
+      service: "Pilotage",
+    });
+  }
+
+  if ((kpis.mediaLostContracts || 0) > 0) {
+    insights.push({
+      icon: "🔄", title: "Milieux filtrants negliges",
+      msg: (kpis.mediaLostContracts) + " contrat(s) de maintenance perdu(s) faute de remplacement du milieu filtrant a temps. Le suivi du parc installe est un revenu recurrent a proteger.",
       service: "SAV & Maintenance",
     });
   }
@@ -120,6 +165,12 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
       obs: "Revenus de maintenance : " + eur(kpis.totalMaintenanceRevenue) + " (revenu récurrent).",
       q: "La maintenance est-elle exploitée comme un revenu récurrent et un lien client durable ?",
     },
+    {
+      icon: "🔄", theme: "Cycle de vie & milieux filtrants",
+      obs: (kpis.mediaReplacedCount || 0) + " milieu(x) filtrant(s) remplacé(s) pour " + eur(kpis.totalMediaRevenue || 0)
+        + ((kpis.mediaLostContracts || 0) > 0 ? " — " + kpis.mediaLostContracts + " contrat(s) perdu(s) faute de remplacement." : "."),
+      q: "Le parc installé en début de partie a-t-il été anticipé comme un marché de renouvellement (aftermarket) ?",
+    },
   ];
 
   return (
@@ -151,7 +202,31 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
           <ScoreRow label="🏴 CA concurrent (perdu)" value={(kpis.totalCompetitorCA || 0).toLocaleString() + " €"} />
           <ScoreRow label="⏱️ Delai moyen" value={kpis.avgDeliveryDays.toFixed(1) + " jours"} />
           <ScoreRow label="🔧 Revenus maintenance" value={kpis.totalMaintenanceRevenue.toLocaleString() + " €"} />
+          <ScoreRow label="🔄 Milieux filtrants remplaces" value={(kpis.mediaReplacedCount || 0) + " (" + (kpis.totalMediaRevenue || 0).toLocaleString() + " €)"} />
+          {quests.length > 0 && (
+            <ScoreRow label="🎯 Objectifs reussis" value={qDone.length + "/" + quests.length + " (+" + (kpis.totalQuestRevenue || 0).toLocaleString() + " € de primes)"} />
+          )}
+          {state.seed != null && (
+            <ScoreRow label="🎲 Seed de la partie" value={String(state.seed)} />
+          )}
         </div>
+
+        {quests.length > 0 && (
+          <div className="score-quests">
+            <h3>🎯 Objectifs de la partie</h3>
+            {quests.map(q => {
+              const def = QUEST_DEFS[q.id];
+              if (!def) return null;
+              const st = q.status === "completed" ? "✅" : q.status === "failed" ? "❌" : "⏳";
+              return (
+                <div key={q.id} className="score-item">
+                  <span className="score-label">{st} {def.title} {"⭐".repeat(def.stars)}</span>
+                  <span className="score-value">{def.desc}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="score-charts">
           <h3>📊 Evolution de la partie</h3>
@@ -182,6 +257,32 @@ export default function ScoreScreen({ state, onRestart, onClose }) {
               <p className="debrief-q">❓ {d.q}</p>
             </div>
           ))}
+        </div>
+
+        <div className="score-publish">
+          {published ? (
+            <p className="publish-ok">
+              ✅ Score publié ! Rang <strong>#{published.rank}</strong> en {diff ? diff.label : "Normal"}.
+            </p>
+          ) : (
+            <>
+              <input
+                className="save-input"
+                value={pseudo}
+                onChange={e => setPseudo(e.target.value)}
+                placeholder="Ton prénom / pseudo"
+                maxLength={30}
+              />
+              <button
+                className="btn btn-primary"
+                disabled={!pseudo.trim()}
+                onClick={publishScore}
+              >
+                🏆 Publier mon score
+              </button>
+              {publishError && <p className="text-danger">Publication impossible (backend inaccessible ?)</p>}
+            </>
+          )}
         </div>
 
         <div className="score-actions">

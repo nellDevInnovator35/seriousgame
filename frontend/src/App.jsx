@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { DEFAULT_PARAMS } from "./config/defaultParams.js";
 import {
   createInitialState, advanceDay, sendDevis, confirmDevis,
-  setWeeklyPlan, shipProduct, resolveLeak, performMaintenance,
+  setWeeklyPlan, shipProduct, shipMedia, resolveLeak, performMaintenance,
   processDevisPending, invest, placePointService,
 } from "./engine/GameEngine.js";
 import { gameApi } from "./api/gameApi.js";
@@ -17,6 +17,9 @@ import AdminPanel from "./components/AdminPanel.jsx";
 import FicheMetier from "./components/FicheMetier.jsx";
 import Tutorial from "./components/Tutorial.jsx";
 import InvestPanel from "./components/InvestPanel.jsx";
+import QuestPanel from "./components/QuestPanel.jsx";
+import NotificationFeed from "./components/NotificationFeed.jsx";
+import Leaderboard from "./components/Leaderboard.jsx";
 import { DIFFICULTIES, DIFFICULTY_ORDER } from "./config/difficulties.js";
 import "./App.css";
 
@@ -33,6 +36,8 @@ export default function App() {
   const [difficulty, setDifficulty] = useState("normal");
   const [showInvest, setShowInvest] = useState(false);
   const [placingPS, setPlacingPS] = useState(false);
+  const [seedInput, setSeedInput] = useState("");
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const loopRef = useRef(null);
 
   // Charger sauvegardes et params au demarrage
@@ -66,7 +71,10 @@ export default function App() {
   // === ACTIONS MENU ===
   const handleNewGame = () => {
     const preset = DIFFICULTIES[difficulty]?.params || {};
-    const newState = createInitialState({ ...params, ...preset, difficulty });
+    const newState = createInitialState({
+      ...params, ...preset, difficulty,
+      seed: seedInput.trim() || undefined, // meme seed = meme partie (comparaison entre equipiers)
+    });
     setState(newState);
     setShowMenu(false);
     let done = false;
@@ -119,13 +127,16 @@ export default function App() {
     setState(prev => confirmDevis(prev, houseId, channel));
   };
 
-  const handleSetPlan = (actionOrEcoflo, eparcoOrHouseId) => {
+  const handleSetPlan = (actionOrEcoflo, eparcoOrHouseId, media) => {
     if (actionOrEcoflo === "ship") {
       // Expedier un produit
       setState(prev => shipProduct(prev, eparcoOrHouseId));
+    } else if (actionOrEcoflo === "shipMedia") {
+      // Expedier un milieu filtrant
+      setState(prev => shipMedia(prev, eparcoOrHouseId));
     } else {
       // Planifier la production
-      setState(prev => setWeeklyPlan(prev, actionOrEcoflo, eparcoOrHouseId));
+      setState(prev => setWeeklyPlan(prev, actionOrEcoflo, eparcoOrHouseId, media));
     }
   };
 
@@ -141,8 +152,19 @@ export default function App() {
     setState(prev => shipProduct(prev, houseId));
   };
 
+  const handleShipMedia = (houseId) => {
+    setState(prev => shipMedia(prev, houseId));
+  };
+
   const handleDismissEvent = () => {
     setState(prev => ({ ...prev, showEvent: null }));
+  };
+
+  const handleDismissNotif = (id) => {
+    setState(prev => ({
+      ...prev,
+      notifications: (prev.notifications || []).filter(n => n.id !== id),
+    }));
   };
 
   // === INVESTISSEMENTS ===
@@ -196,6 +218,14 @@ export default function App() {
               <p className="difficulty-desc">{DIFFICULTIES[difficulty].desc}</p>
             </div>
 
+            <input
+              className="save-input seed-input"
+              value={seedInput}
+              onChange={e => setSeedInput(e.target.value)}
+              placeholder="Seed (optionnel — même seed = même partie)"
+              title="Entrez un seed pour rejouer exactement la même carte et les mêmes aléas (idéal pour comparer les scores entre équipiers)"
+            />
+
             <button className="btn btn-primary btn-large" onClick={handleNewGame}>
               {"\u{1F3AE}"} Nouvelle partie
             </button>
@@ -218,11 +248,17 @@ export default function App() {
               </div>
             )}
 
+            <button className="btn btn-secondary" onClick={() => setShowLeaderboard(true)}>
+              {"\u{1F3C6}"} Classement
+            </button>
+
             <button className="btn btn-admin" onClick={() => setShowAdmin(true)}>
               {"\u2699"} Administration
             </button>
           </div>
         </div>
+
+        {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
 
         {showAdmin && (
           <AdminPanel
@@ -299,11 +335,17 @@ export default function App() {
               <button className="btn btn-sm" onClick={() => setPlacingPS(false)}>Annuler</button>
             </div>
           )}
+          <NotificationFeed
+            state={state}
+            onDismiss={handleDismissNotif}
+            onFocusHouse={handleHouseClick}
+          />
         </div>
 
         {/* Panneau lateral droit */}
         <div className="game-right">
           <Dashboard state={state} />
+          <QuestPanel state={state} />
           <ProductionPanel state={state} onSetPlan={handleSetPlan} />
         </div>
       </div>
@@ -321,6 +363,7 @@ export default function App() {
           onResolveLeak={handleResolveLeak}
           onMaintenance={handleMaintenance}
           onShip={handleShip}
+          onShipMedia={handleShipMedia}
         />
       )}
 

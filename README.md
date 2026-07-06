@@ -87,11 +87,12 @@ Un **tutoriel** s'affiche au lancement (passable, et rouvrable via le bouton **?
 |--------|---------|-------|
 | **Proposer un devis** | Cliquer sur une maison jaune 🟡 | Ouvre le panneau devis : choix du circuit (Point Service / Distributeur selon la zone) |
 | **Planifier la production** | Cocher Ecoflo/Eparco dans le panneau Production | L'usine produit pendant la semaine (non modifiable en cours de semaine) |
-| **Expédier un produit** | Cliquer "Expédier" sur une commande en attente | Un camion part de l'usine (trajet = 1 jour) |
+| **Expédier un produit** | Cliquer "Expédier" sur une commande en attente | Un camion part de l'usine — **trajet fonction de la distance** (vitesse : 8 km/jour, 1 tuile = 1 km) |
 | **Résoudre une fuite** | Cliquer sur une maison rouge 🔴 → "Intervenir" | Doit être fait sous 2 jours sinon client mécontent |
 | **Effectuer la maintenance** | Cliquer sur une maison avec 🔧 → "Effectuer" | Visite tous les 2 ans sur les installations PT |
+| **Remplacer un milieu filtrant** | Cliquer sur une maison cyan ↻ → "Expédier un milieu filtrant" | Les Ecoflo ont un milieu filtrant à remplacer après 8 ans (à produire à l'usine puis expédier). Facturé 800 € ; ignoré > 90 jours → fuite + contrat de maintenance perdu |
 | **Contrôler le temps** | Play/Pause + vitesse x1 à x3 | Partie complète en ~15 min (x1), ~7,5 min (x2), ~5 min (x3) |
-| **Investir** | Bouton 🏗️ → 2ᵉ Point Service (à placer), camion, agrandir l'usine | Augmente la capacité (pose, logistique, production) ; le CAPEX est déduit de l'EBITDA |
+| **Investir** | Bouton 🏗️ → 2ᵉ Point Service (à placer), camion, agrandir l'usine | Augmente la capacité (pose, logistique, production) ; le CAPEX est déduit de l'EBITDA. **Chaque Point Service pose pour les maisons dont il est le plus proche** : un PS mal placé n'apporte rien |
 
 ### Règles clés
 - ⏱️ **Livraison > 20 jours** → avis négatif → les 5 voisins les plus proches commandent chez le concurrent
@@ -99,11 +100,42 @@ Un **tutoriel** s'affiche au lancement (passable, et rouvrable via le bouton **?
 - 🏭 **Production** : Ecoflo 1/jour, Eparco 2/jour (jours ouvrés uniquement)
 - 📉 **Distributeur** : si ses ventes PT passent sous 20 %, il bascule chez le concurrent
 - 🌳 **5 % des terrains** sont problématiques → seul l'Ecoflo (distributeur) convient
-- 🔧 **Maintenance** : contrat sur toutes les installations PT (Point Service et distributeur), revenu annuel récurrent mais visites à assurer
+- 🔧 **Maintenance** : contrat sur toutes les installations PT (Point Service et distributeur), revenu annuel récurrent mais visites à assurer. **Négligée > 60 jours** après l'échéance → risque de fuite quotidien ; **> 120 jours** → le client **résilie son contrat**
+- 🔄 **Milieux filtrants** : après 8 ans, le milieu filtrant d'un Ecoflo arrive en fin de vie. Il faut le **produire** (case dédiée dans le panneau Production, il occupe du stock), l'**expédier** (camion, plafond logistique) — le remplacement est facturé au client. Non remplacé sous 90 jours → **fuite + perte du contrat de maintenance**. Le parc installé en début de partie devient un **marché de renouvellement (aftermarket)** en fin de partie
+
+### 🎯 Objectifs (quêtes)
+
+Chaque partie propose des **objectifs avec échéance et prime** (créditée au CA), selon la difficulté choisie :
+
+| Objectif | Difficulté | Condition | Prime |
+|----------|-----------|-----------|-------|
+| 🏠 Premiers pas | ⭐ | Équiper 10 maisons PT avant l'an 2 | 3 000 € |
+| ⏱️ Zéro retard | ⭐ | Aucune livraison hors délai pendant l'an 1 | 3 000 € |
+| 🏗️ Investisseur | ⭐ | Au moins 1 investissement (CAPEX) avant l'an 4 | 4 000 € |
+| 📦 Fidélité distributeurs | ⭐⭐ | Aucun distributeur perdu avant l'an 5 | 6 000 € |
+| 📈 Rentable tôt | ⭐⭐ | EBITDA positif à la fin de l'an 3 | 6 000 € |
+| 📊 Leader du territoire | ⭐⭐ | ≥ 70 % de part de marché à l'an 5 | 8 000 € |
+| 🔄 Roi de l'aftermarket | ⭐⭐⭐ | 5 milieux filtrants remplacés, zéro contrat perdu | 10 000 € |
+| 🛠️ Excellence SAV | ⭐⭐⭐ | Aucun contrat de maintenance perdu de toute la partie | 10 000 € |
+
+Sets par niveau : **Facile** = 5 quêtes ⭐/⭐⭐ · **Normal** = 7 quêtes · **Expert** = 6 quêtes dont les ⭐⭐⭐. Suivi en temps réel dans le panneau latéral, bilan sur l'écran de score (définitions dans `config/quests.js`).
+
+### 🎲 Seed & rejouabilité
+
+Le champ **Seed** du menu permet de rejouer **exactement la même partie** (même carte, mêmes aléas) — idéal pour comparer les scores entre équipiers en atelier. Le seed de chaque partie est affiché sur l'écran de résultats.
+
+### 🏆 Leaderboard
+
+En fin de partie, **"Publier mon score"** (pseudo + envoi) enregistre le résultat côté backend — l'EBITDA et la note sont **recalculés côté serveur** à partir des KPIs, un score incohérent est donc impossible. Le bouton **Classement** du menu affiche le tableau, filtrable par **difficulté** et par **seed** : en atelier, l'animateur impose un seed ("challenge du jour"), tout le monde joue la même partie, et le classement ne mesure que les décisions.
+
+- `POST /api/scores` — publier (name, difficulty, seed, kpis) → rang dans sa difficulté
+- `GET /api/scores?difficulty=&seed=&limit=` — classement trié par EBITDA
 
 ### Événements aléatoires
 | Événement | Effet | Contrainte |
 |-----------|-------|------------|
+Les événements **majeurs** (fermeture usine, guerre des prix, distributeur perdu) ouvrent un popup et mettent le jeu en pause. Les événements **mineurs** (fuites, milieux filtrants, quêtes, contrats résiliés) alimentent un **fil de notifications non bloquant** en bas de la carte — cliquer une notification ouvre la maison concernée.
+
 | 💧 **Fuite / inondation** | Une installation fuit | Intervenir sous 2 jours |
 | 🏭 **Fermeture usine** | Plus aucune production | Pendant 20 jours |
 | ⚔️ **Concurrent casse les prix** | Les prospects de la **zone d'influence d'un distributeur (~30 maisons)** partent chez lui. La zone est **mise en évidence en rouge** sur la carte. | Pendant 6 mois |
@@ -129,6 +161,7 @@ Un **tutoriel** s'affiche au lancement (passable, et rouvrable via le bouton **?
 | 📦 **Stock** | Niveau de stock à l'usine (max 100) |
 | 🏠 **Maisons équipées** | PT vs Concurrent |
 | 🔧 **Maintenance** | Revenus des contrats de vérification |
+| 🔄 **Milieux filtrants** | Nombre de remplacements effectués et revenus associés |
 | 🏴 **CA Concurrent** | Chiffre d'affaires capté par la concurrence |
 
 ---
@@ -140,8 +173,10 @@ Tous les paramètres du jeu sont éditables depuis le panneau Admin (accessible 
 - **Production** : cadence Ecoflo/Eparco, stock max, jours ouvrés
 - **Prix** : installation Eparco, vente Ecoflo, contrat maintenance, **CA concurrent / installation**
 - **Coûts (EBITDA réel)** : coût production Ecoflo & Eparco, coût par trajet, coût visite maintenance, frais fixes / an
-- **Logistique** : durée trajet, installations/jour
+- **Logistique** : vitesse camion (km/jour), durée trajet minimale, installations/jour/Point Service
 - **Seuils** : délai max livraison, seuil switch concurrent, voisins impactés, délai devis, taux terrain problématique
+- **Milieux filtrants** : durée de vie, délai de remplacement, cadence de production, prix et coût
+- **Maintenance** : délai de grâce, probabilité de fuite si négligée, délai de résiliation du contrat
 - **Carte & Maisons** : parc existant, **maisons en demande au départ**, nouvelles maisons/mois, distributeurs, rayon d'influence
 - **Événements** : durées des aléas, **taille de la zone d'influence** touchée par la guerre des prix, taux de capture
 - **Scoring** : durée de la partie, intervalle de maintenance
@@ -241,7 +276,7 @@ smartcity-anc/
 | 3 | ✅ **Niveaux de difficulté** — facile (peu d'aléas, marché captif) → expert (concurrence agressive, réglementations) | 🔥🔥 | ⭐ |
 | 4 | **Scénarios prédéfinis** — "Crise fournisseur", "Boom immobilier", "Nouvelle réglementation" avec objectifs spécifiques | 🔥🔥 | ⭐⭐ |
 | 5 | ✅ **Tutoriel interactif** — guide pas-à-pas pour les 5 premières minutes de jeu | 🔥🔥 | ⭐ |
-| 6 | **Système de quêtes/objectifs** — "Équiper 50 maisons en 2 ans", "Zéro avis négatif pendant 6 mois" | 🔥🔥 | ⭐⭐ |
+| 6 | ✅ **Système de quêtes/objectifs** — 8 quêtes avec difficulté (⭐→⭐⭐⭐), échéances et primes, sets par niveau *(fait)* | 🔥🔥 | ⭐⭐ |
 | 7 | **Ajout du bureau d'études / prescripteur** — un acteur qui recommande tel ou tel produit selon les sols | 🔥 | ⭐⭐ |
 | 31 | ✅ 🏗️ **Investir & placer des infrastructures** — 2ᵉ Point Service (placement carte), camion, agrandissement usine ; CAPEX déduit de l'EBITDA *(fait — voir évaluation ci-dessous)* | 🔥🔥🔥 | ⭐⭐ |
 
@@ -280,7 +315,7 @@ smartcity-anc/
 |---|-------------|--------|------------|
 | 8 | ✅ **Graphiques d'évolution** — courbes CA, EBITDA, satisfaction, part de marché dans le temps *(fait, en SVG)* | 🔥🔥 | ⭐ |
 | 9 | **Replay de la partie** — revoir les décisions clés et leurs conséquences | 🔥🔥 | ⭐⭐⭐ |
-| 10 | **Leaderboard** — classement entre équipiers, comparaison des scores | 🔥🔥🔥 | ⭐⭐ |
+| 10 | ✅ **Leaderboard** — classement entre équipiers (publication en fin de partie, filtres difficulté/seed, EBITDA validé serveur) *(fait)* | 🔥🔥🔥 | ⭐⭐ |
 | 11 | ✅ **Export des résultats en PDF** — pour débrief en réunion d'équipe | 🔥 | ⭐⭐ |
 
 ### 🎨 Visuel & UX

@@ -30,7 +30,7 @@ export function findNearestNeighbors(h, hs, n) {
     .map(e => e.h);
 }
 
-export function generateMap(params = DEFAULT_PARAMS) {
+export function generateMap(params = DEFAULT_PARAMS, rand = Math.random) {
   const { mapWidth: W, mapHeight: H, totalHouses: TH, initialHouses: IH,
     nbDistributors: ND, distributorRadius: DR, terrainIssueRate: TI } = params;
 
@@ -39,7 +39,7 @@ export function generateMap(params = DEFAULT_PARAMS) {
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
       const commune = x < W / 2 ? "A" : "B";
-      const r = Math.random();
+      const r = rand();
       const terrain = r < 0.12 ? "trees" : r < 0.20 ? "slope" : "grass";
       tiles.push({ x, y, commune, terrain, building: null, houseId: null });
     }
@@ -48,13 +48,13 @@ export function generateMap(params = DEFAULT_PARAMS) {
   // Usine hors communes
   const factory = {
     x: Math.floor(W / 2), y: H + 2,
-    stock: { ecoflo4: 0, ecoflo5: 0, eparco4: 0, eparco5: 0 },
+    stock: { ecoflo4: 0, ecoflo5: 0, eparco4: 0, eparco5: 0, media: 0 },
     totalStock: 0, isClosed: false, closedUntilDay: 0,
   };
 
   // Point Service dans commune A
-  const psx = Math.floor(Math.random() * (W / 2 - 2)) + 1;
-  const psy = Math.floor(Math.random() * (H - 2)) + 1;
+  const psx = Math.floor(rand() * (W / 2 - 2)) + 1;
+  const psy = Math.floor(rand() * (H - 2)) + 1;
   const pointService = { x: psx, y: psy, commune: "A" };
   const psTile = tiles.find(t => t.x === psx && t.y === psy);
   if (psTile) { psTile.building = "pointService"; psTile.terrain = "grass"; }
@@ -64,8 +64,8 @@ export function generateMap(params = DEFAULT_PARAMS) {
   for (let i = 0; i < ND; i++) {
     let dx, dy, attempts = 0;
     do {
-      dx = Math.floor(Math.random() * W);
-      dy = Math.floor(Math.random() * H);
+      dx = Math.floor(rand() * W);
+      dy = Math.floor(rand() * H);
       attempts++;
     } while (attempts < 100 && (
       tiles.find(t => t.x === dx && t.y === dy)?.building ||
@@ -82,14 +82,19 @@ export function generateMap(params = DEFAULT_PARAMS) {
 
   // Maisons
   const houses = [];
-  const avail = tiles.filter(t => !t.building).sort(() => Math.random() - 0.5);
+  const avail = tiles.filter(t => !t.building);
+  // Melange Fisher-Yates deterministe (via rand seedable)
+  for (let i = avail.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [avail[i], avail[j]] = [avail[j], avail[i]];
+  }
   for (let i = 0; i < Math.min(TH, avail.length); i++) {
     const t = avail[i];
     houses.push({
       id: i, x: t.x, y: t.y, commune: t.commune,
-      inhabitants: Math.random() < 0.5 ? 4 : 5,
+      inhabitants: rand() < 0.5 ? 4 : 5,
       terrain: t.terrain,
-      hasTerrainIssue: Math.random() < TI,
+      hasTerrainIssue: rand() < TI,
       status: "none",       // none|needsANC|devisSent|ordered|shipping|installing|installed
       channel: null,         // null|pointService|distributor|competitor
       product: null,         // null|ecoflo4|ecoflo5|eparco4|eparco5
@@ -104,8 +109,15 @@ export function generateMap(params = DEFAULT_PARAMS) {
       appearedDay: i < IH ? 0 : null,
       isEquipped: false,
       needsMaintenance: false,
+      maintenanceDueDay: null,  // jour ou la maintenance est devenue necessaire
       hasLeak: false,
       leakDay: null,
+      // Milieu filtrant (Ecoflo uniquement)
+      needsMediaReplacement: false,
+      mediaDueDay: null,        // jour ou le besoin est apparu
+      mediaInstallDay: null,    // dernier remplacement (reset de la duree de vie)
+      mediaShipping: false,     // milieu filtrant en cours de livraison
+      contractLost: false,      // contrat de maintenance perdu (media non remplace)
     });
     t.building = "house";
     t.houseId = i;

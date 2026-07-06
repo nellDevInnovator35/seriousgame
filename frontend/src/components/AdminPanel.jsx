@@ -29,8 +29,9 @@ export default function AdminPanel({ params, onSave, onClose }) {
     {
       title: "🚛 Logistique",
       fields: [
-        ["tripDuration", "Duree trajet (jours)"],
-        ["installsPerDay", "Installations / jour (Pt Service)"],
+        ["tripKmPerDay", "Vitesse camion (km / jour)"],
+        ["tripDuration", "Duree trajet minimale (jours)"],
+        ["installsPerDay", "Installations / jour / Point Service"],
       ],
     },
     {
@@ -63,6 +64,24 @@ export default function AdminPanel({ params, onSave, onClose }) {
         ["eventCompetitorDuration", "Promo concurrent (jours)"],
         ["competitorZoneHouses", "Zone d'influence distributeur (nb maisons)"],
         ["eventCompetitorCaptureRate", "Taux capture concurrent (%)"],
+      ],
+    },
+    {
+      title: "🔧 Maintenance",
+      fields: [
+        ["maintenanceGraceDays", "Delai de grace (jours)"],
+        ["maintenanceLeakProba", "Proba fuite / jour si negligee"],
+        ["maintenanceLostDays", "Contrat resilie apres (jours)"],
+      ],
+    },
+    {
+      title: "🔄 Milieux filtrants",
+      fields: [
+        ["mediaLifespanYears", "Duree de vie (annees)"],
+        ["mediaReplacementMaxDays", "Delai remplacement (jours)"],
+        ["mediaPerDay", "Production / jour"],
+        ["priceMediaReplacement", "Prix remplacement (€)"],
+        ["costProductionMedia", "Cout production (€)"],
       ],
     },
     {
@@ -116,7 +135,7 @@ export default function AdminPanel({ params, onSave, onClose }) {
                     <label>{label}</label>
                     <input
                       type="number"
-                      step={key.includes("Rate") || key.includes("Threshold") ? 0.01 : 1}
+                      step={key.includes("Rate") || key.includes("Threshold") || key.includes("Proba") ? 0.01 : 1}
                       value={v[key]}
                       onChange={e => set(key, e.target.value)}
                     />

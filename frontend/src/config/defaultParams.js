@@ -6,13 +6,24 @@ export const DEFAULT_PARAMS = {
   newHousesPerMonthMin: 1, newHousesPerMonthMax: 3,
   terrainIssueRate: 0.05,
   ecofloPerDay: 1, eparcoPerDay: 2, maxStock: 100, daysPerWeek: 5,
-  tripDuration: 1, installsPerDay: 1,
+  tripDuration: 1, installsPerDay: 1, // tripDuration = duree minimale d'un trajet
+  tripKmPerDay: 8, // vitesse camion : km parcourus / jour (1 tuile = 1 km) -> trajet = distance / vitesse
   priceEparcoInstall: 2000, priceEcofloSale: 1000, priceMaintenanceYear: 100,
   priceCompetitor: 1500, // CA estime que le concurrent encaisse par installation captee
   devisToSaleDays: 14, maxDeliveryDays: 20, negativeReviewNeighbors: 5,
   distributorSwitchThreshold: 0.20,
   distributorCompetitorPriceFactor: 0.8,
   maintenanceIntervalYears: 2, maintenanceCostPerVisit: 100,
+  // Maintenance negligee : consequences
+  maintenanceGraceDays: 60,    // delai de grace apres l'echeance, sans risque
+  maintenanceLeakProba: 0.01,  // proba de fuite / jour une fois le delai depasse
+  maintenanceLostDays: 120,    // au-dela : le client resilie le contrat
+  // Milieux filtrants (Ecoflo) : le media doit etre remplace en fin de vie
+  mediaLifespanYears: 8,        // duree de vie du milieu filtrant
+  mediaReplacementMaxDays: 90,  // delai pour remplacer avant perte du contrat
+  mediaPerDay: 2,               // cadence de production des milieux filtrants
+  priceMediaReplacement: 800,   // CA facture au client par remplacement
+  costProductionMedia: 200,     // cout de production d'un milieu filtrant
   // Couts unitaires pour le calcul EBITDA reel (EBITDA = CA - couts)
   costProductionEcoflo: 600, costProductionEparco: 900,
   costPerTrip: 150, fixedCostPerYear: 8000,
